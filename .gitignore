@@ -1,0 +1,22 @@
+# Build
+bin/
+build/
+Debug/
+Release/
+
+# Eclipse / Vitis
+.metadata/
+.settings/
+.analytics
+
+# Object files
+*.o
+*.d
+*.a
+*.so
+
+# Executables
+*.elf
+
+# Backup
+*~
