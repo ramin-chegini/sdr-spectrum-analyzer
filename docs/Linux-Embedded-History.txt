@@ -1,0 +1,1028 @@
+rgc@ubuntu:~/work/sdr_app$ ssh-keygen -f ~/.ssh/known_hosts -R 192.168.1.10
+# Host 192.168.1.10 found: line 1
+/home/rgc/.ssh/known_hosts updated.
+Original contents retained as /home/rgc/.ssh/known_hosts.old
+rgc@ubuntu:~/work/sdr_app$ scp bin/sdr_app root@192.168.1.10:/home/root/
+The authenticity of host '192.168.1.10 (192.168.1.10)' can't be established.
+ECDSA key fingerprint is SHA256:4wJneAzNwT6yvGsZMujtEf2obBh10ZptYI4kOrE/5J8.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.1.10' (ECDSA) to the list of known hosts.
+root@192.168.1.10's password: 
+sdr_app                                       100% 9452     4.1MB/s   00:00    
+rgc@ubuntu:~/work/sdr_app$ puttty
+
+Command 'puttty' not found, did you mean:
+
+  command 'putty' from deb putty
+
+Try: sudo apt install <deb name>
+
+rgc@ubuntu:~/work/sdr_app$ putty
+
+(putty:69989): Gtk-CRITICAL **: 02:31:53.799: gtk_box_gadget_distribute: assertion 'size >= 0' failed in GtkScrollbar
+^C
+rgc@ubuntu:~/work/sdr_app$ scp bin/sdr_app  root@192.168.1.10:/home/root/
+root@192.168.1.10's password: 
+sdr_app                                       100%   10KB   4.3MB/s   00:00    
+rgc@ubuntu:~/work/sdr_app$ history
+  983  petalinux-build -
+  984  petalinux-build -c device-tree 
+  985  petalinux-build -c kernel
+  986  petalinux-build 
+  987  clear
+  988  petalinux-build -c libiio -x cleanall
+  989  petalinux-build -c libiio
+  990  petalinux-build -c libad9361-iio
+  991  petalinux-build
+  992  petalinux-config -c rootfs
+  993  rm -rf *
+  994  sync
+  995  sudo rm -rf *
+  996  sync
+  997  cp BOOT.BIN /media/rgc/BOOT/
+  998  cp zImage /media/rgc/BOOT/
+  999  cp system.dtb /media/rgc/BOOT/
+ 1000  sync
+ 1001  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1002  sync
+ 1003  sudo rm -rf *
+ 1004  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1005  sync
+ 1006  p19
+ 1007  petalinux-build -c device-tree -x cleanall
+ 1008  petalinux-build -c device-tree 
+ 1009  petalinux-build -c device-tree -x cleanall
+ 1010  petalinux-build -c device-tree 
+ 1011  dtc -I dtb -O dts -o p201pro_v8_2.dts system.dtb 
+ 1012  p19
+ 1013  petalinux-build -c device-tree -x cleanall
+ 1014  petalinux-build -c device-tree 
+ 1015  p19
+ 1016  petalinux-build -c device-tree -x cleanall
+ 1017  petalinux-build -c device-tree 
+ 1018  p19
+ 1019  petalinux-config --get-hw-description=../hw
+ 1020  petalinux-build -c device-tree -x cleanall
+ 1021  petalinux-build -c device-tree 
+ 1022  petalinux-build -x mrproper --force
+ 1023  p19
+ 1024  petalinux-build -x mrproper 
+ 1025  petalinux-build -x mrproper --force
+ 1026  p19
+ 1027  petalinux-build -x mrproper 
+ 1028  petalinux-build -c device-tree -x cleanall
+ 1029  petalinux-build -c device-tree 
+ 1030  petalinux-build 
+ 1031  dtc -I dtb -O dts -o p201pro_v9.dts system.dtb 
+ 1032  p19
+ 1033  petalinux-build -x mrproper 
+ 1034  petalinux-build -c device-tree 
+ 1035  petalinux-build -c libad9361-iio
+ 1036  petalinux-build -c libiio -x cleanall
+ 1037  petalinux-build -c libad9361-iio -x cleanall
+ 1038  petalinux-build -c libiio 
+ 1039  petalinux-build -c libad9361-iio 
+ 1040  petalinux-build 
+ 1041  petalinux-config -c rootfs
+ 1042  p19
+ 1043  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1044  rm -rf *
+ 1045  sync
+ 1046  sudo rm -rf *
+ 1047  sync
+ 1048  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1049  sync
+ 1050  p19
+ 1051  petalinux-build -c device-tree -x cleanall
+ 1052  petalinux-build -c device-tree 
+ 1053  dtc -I dtb -O dts -o p201pro_v10.dts system.dtb 
+ 1054  p19
+ 1055  petalinux-config --get-hw-description=../hw
+ 1056  petalinux-build -c device-tree -x cleanall
+ 1057  petalinux-build -c device-tree 
+ 1058  petalinux-build -c device-tree -x cleanall
+ 1059  petalinux-build -c device-tree
+ 1060  petalinux-build -c kernel
+ 1061  petalinux-build -c libiio -x cleanall
+ 1062  petalinux-build -c libiio
+ 1063  petalinux-build -c libad9361-iio -x cleanall
+ 1064  petalinux-build -c libad9361-iio
+ 1065  petalinux-build
+ 1066  petalinux-config -c rootfs
+ 1067  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1068  p19
+ 1069  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1070  rm -rf *
+ 1071  sync
+ 1072  sudo rm -rf *
+ 1073  sync
+ 1074  cp BOOT.BIN /media/rgc/BOOT/
+ 1075  cp system.dtb /media/rgc/BOOT/
+ 1076  cp zImage /media/rgc/BOOT/
+ 1077  sync
+ 1078  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1079  sync
+ 1080  p19
+ 1081  petalinux-build -c device-tree -x cleanall
+ 1082  petalinux-build -c device-tree 
+ 1083  dtc -I dtb -O dts -o p201pro_v10_2.dts system.dtb 
+ 1084  p19
+ 1085  petalinux-build -c device-tree -x cleanall
+ 1086  petalinux-build -c device-tree 
+ 1087  dtc -I dtb -O dts -o p201pro_v10_3.dts system.dtb 
+ 1088  p19
+ 1089  petalinux-build -c device-tree -x cleanall
+ 1090  petalinux-build -c device-tree 
+ 1091  dtc -I dtb -O dts -o p201pro_v11.dts factory-live.dtb 
+ 1092  p19
+ 1093  petalinux-build -c device-tree -x cleanall
+ 1094  petalinux-build -c device-tree 
+ 1095  dtc -I dtb -O dts -o p201pro_v11.dts system.dtb 
+ 1096  p19
+ 1097  petalinux-build -c device-tree -x cleanall
+ 1098  petalinux-build -c device-tree
+ 1099  p19
+ 1100  petalinux-build -c device-tree -x cleanall
+ 1101  petalinux-build -c device-tree 
+ 1102  dtc -I dtb -O dts -o p201pro_v11_2.dts system.dtb 
+ 1103  p19
+ 1104  petalinux-build -c device-tree -x cleanall
+ 1105  petalinux-build -c device-tree 
+ 1106  p19
+ 1107  petalinux-build -c device-tree -x cleanall
+ 1108  petalinux-build -c device-tree 
+ 1109  dtc -I dtb -O dts -o p201pro_v11_3.dts system.dtb 
+ 1110  dtc -I dtb -O dts -o p201pro_v11.dts system.dtb 
+ 1111  p19
+ 1112  petalinux-config --get-hw-description=../hw
+ 1113  petalinux-build -c device-tree -x cleanall
+ 1114  petalinux-build -c device-tree
+ 1115  petalinux-build -c libiio -x cleanall
+ 1116  petalinux-build -c libiio 
+ 1117  petalinux-build -c libad9361-iio -x cleanall
+ 1118  petalinux-build -c libad9361-iio 
+ 1119  petalinux-build 
+ 1120  petalinux-config -c rootfs
+ 1121  p19
+ 1122  petalinux-config -c rootfs
+ 1123  rm -rf *
+ 1124  sync
+ 1125  sudo rm -rf *
+ 1126  sync
+ 1127  p19
+ 1128  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1129  cp BOOT.BIN /media/rgc/BOOT/
+ 1130  cp zImage /media/rgc/BOOT/
+ 1131  cp system.dtb /media/rgc/BOOT/
+ 1132  sync
+ 1133  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1134  sync
+ 1135  dtc -I dtb -O dts -o p201pro_v12.dts system.dtb 
+ 1136  p19
+ 1137  petalinux-config --get-hw-description=../hw
+ 1138  petalinux-build -c device-tree -x cleanall
+ 1139  petalinux-build -c device-tree 
+ 1140  petalinux-build -c libiio -x cleanall
+ 1141  petalinux-build -c libiio
+ 1142  petalinux-build -c libad9361-iio -x cleanall
+ 1143  petalinux-build -c libad9361-iio
+ 1144  petalinux-build
+ 1145  p19
+ 1146  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1147  sudo rm -rf *
+ 1148  sync
+ 1149  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1150  sync
+ 1151  make
+ 1152  export ADI_IGNORE_VERSION_CHECK=1 make
+ 1153  make
+ 1154  dtc -I dtb -O dts -o factory.dts factory-live.dtb 
+ 1155  p19
+ 1156  petalinux-build -c device-tree -x cleanall
+ 1157  petalinux-build -c device-tree 
+ 1158  p19
+ 1159  petalinux-build -c device-tree -x cleanall
+ 1160  petalinux-build -c device-tree 
+ 1161  p19
+ 1162  petalinux-config --get-hw-description=../hw
+ 1163  petalinux-build -c device-tree 
+ 1164  petalinux-build -c libiio
+ 1165  petalinux-build -c libad9361-iio
+ 1166  petalinux-build 
+ 1167  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1168  sudo rm -rf *
+ 1169  sync
+ 1170  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1171  sync
+ 1172  p19
+ 1173  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1174  dtc -I dtb -O dts -o P201pro_v13 system.dtb 
+ 1175  dtc -I dtb -O dts -o P201pro_v13.dts system.dtb 
+ 1176  p19
+ 1177  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1178  sudo rm -rf *
+ 1179  syncsync\
+ 1180  syncsync
+ 1181  sync
+ 1182  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1183  sync
+ 1184  p19
+ 1185  petalinux-config --get-hw-description=../hw
+ 1186  petalinux-build -c device-tree -x cleanall
+ 1187  petalinux-build -c libiio -x cleanall
+ 1188  petalinux-build -c libiio
+ 1189  petalinux-build -c libad9361-iio -x cleanall
+ 1190  petalinux-build -c libad9361-iio 
+ 1191  petalinux-build 
+ 1192  sudo rm -rf *
+ 1193  sync
+ 1194  rm -rf *
+ 1195  sync
+ 1196  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1197  sync
+ 1198  p19
+ 1199  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1200  p19
+ 1201  petalinux-config --get-hw-description=../hw
+ 1202  petalinux-build -c device-tree -x cleanall
+ 1203  petalinux-build -c libiio
+ 1204  petalinux-build -c libad9361-iio
+ 1205  petalinux-build
+ 1206  dtc -I dtb -O dts -o P201pro_v13.dts system.dtb 
+ 1207  dtc -I dtb -O dts -o P201pro_v13_2.dts system.dtb 
+ 1208  dtc -I dtb -O dts -o P201pro_v13_3.dts system.dtb 
+ 1209  p19
+ 1210  petalinux-build -c device-tree -x cleanall
+ 1211  petalinux-build -c device-tree 
+ 1212  petalinux-build -c device-tree -x cleanall
+ 1213  petalinux-build -c device-tree 
+ 1214  petalinux-build -c device-tree -x cleanall
+ 1215  petalinux-build -c device-tree 
+ 1216  petalinux-build -c device-tree -x cleanall
+ 1217  petalinux-build -c device-tree
+ 1218  petalinux-build 
+ 1219  sudo rm -rf *
+ 1220  sync
+ 1221  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1222  sync
+ 1223  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1224  p19
+ 1225  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1226  dtc -I dtb -O dts -o P201pro_v13_3.dts system.dtb 
+ 1227  p19
+ 1228  petalinux-build -c device-tree -x cleanall
+ 1229  petalinux-build -c device-tree 
+ 1230  sudo rm -rf *
+ 1231  sync
+ 1232  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1233  sync
+ 1234  p19
+ 1235  petalinux-build -c device-tree -x cleanall
+ 1236  petalinux-build -c device-tree 
+ 1237  petalinux-build -c device-tree -x cleanall
+ 1238  petalinux-build -c device-tree 
+ 1239  dtc -I dtb -O dts -o P201pro_v13_3.dts system.dtb 
+ 1240  petalinux-config --get-hw-description=../hw
+ 1241  petalinux-build -c device-tree -x cleanall
+ 1242  petalinux-build -c device-tree 
+ 1243  sudo rm -rf *
+ 1244  sync
+ 1245  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1246  sync
+ 1247  p19
+ 1248  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1249  dtc -I dtb -O dts -o P201pro_v13_3.dts system.dtb 
+ 1250  p19
+ 1251  petalinux-build -c libiio -x cleanall
+ 1252  petalinux-build -c libiio
+ 1253  petalinux-build -c libad9361-iio -x cleanall
+ 1254  petalinux-build -c libad9361-iio
+ 1255  petalinux-build
+ 1256  p19
+ 1257  petalinux-create -t project -n zynq_sdrBo --template zynq
+ 1258  cd zynq_sdrBo/
+ 1259  ls
+ 1260  petalinux-config --get-hw-description=../hw
+ 1261  dtc -I dtb -O dts -o P201pro_v13_3.dts system.dtb 
+ 1262  sudo rm -rf *
+ 1263  sync
+ 1264  rm -rf *
+ 1265  sync
+ 1266  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1267  sync
+ 1268  cp BOOT.BIN /media/rgc/BOOT/
+ 1269  cp zImage /media/rgc/BOOT/
+ 1270  cp system.dtb /media/rgc/BOOT/
+ 1271  sync
+ 1272  p10
+ 1273  p19
+ 1274  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1275  p19
+ 1276  petalinux-build -c device-tree -x cleanall
+ 1277  petalinux-build -c device-tree 
+ 1278  petalinux-build -c libiio
+ 1279  petalinux-build -c libad9361-iio
+ 1280  petalinux-build 
+ 1281  sudo rm -rf *
+ 1282  sync
+ 1283  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1284  sync
+ 1285  dtc -I dtb -O dts -o P201pro_v13_3.dts system.dtb 
+ 1286  p19
+ 1287  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1288  petalinux-config --get-hw-description=../hw
+ 1289  p19
+ 1290  petalinux-config --get-hw-description=../hw
+ 1291  petalinux-build -c device-tree -x cleanall
+ 1292  petalinux-build -c device-tree 
+ 1293  petalinux-build -c libiio -x cleanall
+ 1294  petalinux-build -c libiio
+ 1295  petalinux-build -c libad9361-iio -x cleanall
+ 1296  petalinux-build -c libad9361-iio
+ 1297  petalinux-build
+ 1298  cp BOOT.BIN /media/rgc/BOOT/
+ 1299  cp zImage /media/rgc/BOOT/
+ 1300  cp system.dtb /media/rgc/BOOT/
+ 1301  sync
+ 1302  sudo rm -rf *
+ 1303  sync
+ 1304  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1305  sysnc
+ 1306  sync
+ 1307  dtc -I dtb -O dts -o P201pro_v13_4.dts system.dtb 
+ 1308  p19
+ 1309  petalinux-build -c device-tree -x cleanall
+ 1310  petalinux-build -c device-tree 
+ 1311  petalinux-config -c rootfs
+ 1312  sudo rm -rf *
+ 1313  sync
+ 1314  rm -rf *
+ 1315  sync
+ 1316  cp BOOT.BIN 
+ 1317  cp BOOT.BIN /media/rgc/BOOT/
+ 1318  cp system.dtb /media/rgc/BOOT/
+ 1319  cp zImage /media/rgc/BOOT/
+ 1320  sync
+ 1321  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1322  sync
+ 1323  p19
+ 1324  petalinux-build
+ 1325  petalinux-build -c device-tree -x cleanall
+ 1326  petalinux-build -c device-tree 
+ 1327  dtc -I dtb -O dts -o P201pro_v13_4.dts system.dtb 
+ 1328  dtc -I dtb -O dts -o P201pro_v13_5.dts system.dtb 
+ 1329  p19
+ 1330  petalinux-build -c device-tree -x cleanall
+ 1331  petalinux-build -c device-tree 
+ 1332  petalinux-build -c device-tree -x cleanall
+ 1333  petalinux-build -c device-tree 
+ 1334  petalinux-build -c device-tree -x cleanall
+ 1335  petalinux-build -c device-tree 
+ 1336  dtc -I dtb -O dts -o P201pro_v13_5.dts system.dtb 
+ 1337  p19
+ 1338  petalinux-build -c device-tree -x cleanall
+ 1339  petalinux-build -c device-tree 
+ 1340  petalinux-build -c device-tree -x cleanall
+ 1341  petalinux-build -c device-tree 
+ 1342  petalinux-build -c device-tree -x cleanall
+ 1343  petalinux-build -c device-tree 
+ 1344  petalinux-build -c device-tree -x cleanall
+ 1345  petalinux-build -c device-tree 
+ 1346  petalinux-build -c device-tree -x cleanall
+ 1347  petalinux-build -c device-tree 
+ 1348  p19
+ 1349  petalinux-build -c device-tree -x cleanall
+ 1350  petalinux-build -c device-tree 
+ 1351  dtc -I dtb -O dts -o P201pro_v13_6.dts system.dtb 
+ 1352  p19
+ 1353  petalinux-build -c device-tree -x cleanall
+ 1354  petalinux-build -c device-tree 
+ 1355  p19
+ 1356  petalinux-build -c device-tree -x cleanall
+ 1357  petalinux-build -c device-tree 
+ 1358  petalinux-build -c device-tree -x cleanall
+ 1359  petalinux-build -c device-tree 
+ 1360  p19
+ 1361  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1362  rm -rf *
+ 1363  sync
+ 1364  sudo rm -rf 
+ 1365  sudo rm -rf *
+ 1366  sync
+ 1367  p19
+ 1368  petalinux-config --get-hw-description=../hw
+ 1369  petalinux-build -c device-tree -x cleanall
+ 1370  petalinux-build -c device-tree 
+ 1371  petalinux-build -c libiio -x cleanall
+ 1372  petalinux-build -c libiio
+ 1373  petalinux-build -c libad9361-iio -x cleanall
+ 1374  petalinux-build -c libad9361-iio
+ 1375  petalinux-build
+ 1376  petalinux-config -c rootfs
+ 1377  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1378  sync
+ 1379  dtc -I dtb -O dts -o P201pro_v13_6.dts system.dtb 
+ 1380  p19
+ 1381  petalinux-config --get-hw-description=../hw
+ 1382  petalinux-build -c device-tree -x cleanall
+ 1383  petalinux-build -c device-tree 
+ 1384  dtc -I dtb -O dts -o P201pro_v13_6.dts system.dtb 
+ 1385  sudo rm -rf *
+ 1386  sync
+ 1387  p19
+ 1388  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1389  p19
+ 1390  petalinux-build -c device-tree -x cleanall
+ 1391  petalinux-build -c device-tree 
+ 1392  petalinux-build -c device-tree -x cleanall
+ 1393  petalinux-build -c device-tree 
+ 1394  petalinux-build -c libiio -x cleanall
+ 1395  petalinux-build -c libiio 
+ 1396  petalinux-build -c libad9361-iio -x cleanall
+ 1397  petalinux-build -c libad9361-iio 
+ 1398  petalinux-build 
+ 1399  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1400  sync
+ 1401  dtc -I dtb -O dts -o P201pro_v13_6.dts system.dtb 
+ 1402  sudo rm -rf *
+ 1403  sync
+ 1404  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1405  sync
+ 1406  p19
+ 1407  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1408  p19
+ 1409  petalinux-config --get-hw-description=../hw
+ 1410  petalinux-build -c device-tree -x cleanall
+ 1411  petalinux-build -c device-tree 
+ 1412  petalinux-build -c libiio -x cleanall
+ 1413  petalinux-build -c libiio 
+ 1414  petalinux-build -c libad9361-iio -x cleanall
+ 1415  petalinux-build -c libad9361-iio 
+ 1416  petalinux-build
+ 1417  p19
+ 1418  petalinux-build -c device-tree -x cleanall
+ 1419  petalinux-build -c device-tree 
+ 1420  petalinux-build -c device-tree -x cleanall
+ 1421  petalinux-build -c device-tree 
+ 1422  petalinux-build -c device-tree -x cleanall
+ 1423  petalinux-build -c device-tree
+ 1424  sudo rm -rf *
+ 1425  sysnc
+ 1426  sync
+ 1427  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1428  sync
+ 1429  p19
+ 1430  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1431  p19
+ 1432  petalinux-config --get-hw-description=../hw
+ 1433  petalinux-build -c device-tree -x cleanall
+ 1434  petalinux-build -c device-tree 
+ 1435  petalinux-build -c libiio -x cleanall
+ 1436  petalinux-build -c libiio 
+ 1437  petalinux-build -c libad9361-iio -x cleanall
+ 1438  petalinux-build -c libad9361-iio 
+ 1439  petalinux-build
+ 1440  dtc -I dtb -O dts -o P201pro_v19.2.dts system.dtb 
+ 1441  p19
+ 1442  petalinux-build -c device-tree -x cleanall
+ 1443  petalinux-build -c device-tree 
+ 1444  dtc -I dtb -O dts -o P201pro_v19.dts system.dtb 
+ 1445  dtc -I dtb -O dts -o P201pro_v19_2.dts system.dtb 
+ 1446  p19
+ 1447  petalinux-build -c device-tree -x cleanall
+ 1448  petalinux-build -c device-tree 
+ 1449  p19
+ 1450  petalinux-build -c device-tree -x cleanall
+ 1451  petalinux-build -c device-tree 
+ 1452  dtc -I dtb -O dts -o P201pro_v19_2.dts system.dtb 
+ 1453  sudo rm -rf 
+ 1454  sudo rm -rf *
+ 1455  sync
+ 1456  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1457  sync
+ 1458  p19
+ 1459  petalinux-build -c device-tree -x cleanall
+ 1460  petalinux-build -c device-tree
+ 1461  petalinux-build -c device-tree -x cleanall
+ 1462  petalinux-build -c device-tree 
+ 1463  petalinux-build -c device-tree -x cleanall
+ 1464  petalinux-build -c device-tree 
+ 1465  petalinux-build -c device-tree -x cleanall
+ 1466  petalinux-build -c device-tree 
+ 1467  p19
+ 1468  petalinux-build -c kernel
+ 1469  petalinux-build 
+ 1470  sudo rm -rf *
+ 1471  sync
+ 1472  p19
+ 1473  petalinux-build 
+ 1474  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1475  sync
+ 1476  dtc -I dtb -O dts -o P201pro_v19_2.dts system.dtb 
+ 1477  ls
+ 1478  ls
+ 1479  dtc -I dtb -O dts -o P201pro_v19_2.dts system.dtb 
+ 1480  dtc -I dtb -O dts -o P201pro_v20.dts system.dtb 
+ 1481  p19
+ 1482  petalinux-config --get-hw-description=../hw
+ 1483  petalinux-build -c device-tree -x cleanall
+ 1484  petalinux-build -c device-tree 
+ 1485  petalinux-build -c libiio -x cleanall
+ 1486  petalinux-build -c libiio 
+ 1487  history
+ 1488  petalinux-build -c libad9361-iio -x cleanall
+ 1489  petalinux-build -c libad9361-iio
+ 1490  petalinux-build 
+ 1491  sudo rm -rf *
+ 1492  sync
+ 1493  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1494  sync
+ 1495  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1496  p19
+ 1497  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1498  git branch
+ 1499  git rev-parse HEAD
+ 1500  git describe --tags
+ 1501  git branch
+ 1502  git rev-parse HEAD
+ 1503  git describe --tags
+ 1504  git branch
+ 1505  git rev-parse HEAD
+ 1506  git describe --tags
+ 1507  git branch
+ 1508  git rev-parse HEAD
+ 1509  git describe --tags
+ 1510  git branch
+ 1511  git rev-parse HEAD
+ 1512  git describe --tags
+ 1513  git branch
+ 1514  git rev-parse HEAD
+ 1515  git describe --tags
+ 1516  git branch
+ 1517  ls
+ 1518  rm -rf pzp351.cache
+ 1519  rm -rf pzp351.gen
+ 1520  rm -rf pzp351.runs
+ 1521  rm -rf pzp351.ip_user_files
+ 1522  rm -rf .Xil
+ 1523  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1524  p19\
+ 1525  p19
+ 1526  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1527  dtc -I dtb -O dts -o P201pro_v21.dts system.dtb 
+ 1528  petalinux-config --get-hw-description=../hw
+ 1529  p19
+ 1530  petalinux-config --get-hw-description=../hw
+ 1531  petalinux-build -c device-tree -x cleanall
+ 1532  petalinux-build -c device-tree
+ 1533  petalinux-build -c libiio -x cleanall
+ 1534  petalinux-build -c libiio 
+ 1535  petalinux-build 
+ 1536  rm -rf *
+ 1537  sync
+ 1538  sudo rm -rf *
+ 1539  sync
+ 1540  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1541  sync
+ 1542  cp BOOT.BIN /media/rgc/BOOT/
+ 1543  cp zImage /media/rgc/BOOT/
+ 1544  cp system.dtb /media/rgc/BOOT/
+ 1545  sync
+ 1546  pwd
+ 1547  pwd
+ 1548  pwd
+ 1549  p19
+ 1550  petalinux-config --get-hw-description=../hw
+ 1551  petalinux-build -c device-tree -x cleanall
+ 1552  petalinux-build -c device-tree 
+ 1553  petalinux-build -c libiio -x cleanall
+ 1554  petalinux-build -c libiio 
+ 1555  petalinux-build -c libad9361-iio -x cleanall
+ 1556  petalinux-build -c libad9361-iio 
+ 1557  petalinux-build 
+ 1558  rm -rf *
+ 1559  sync
+ 1560  sudo rm -rf *
+ 1561  sync
+ 1562  p19
+ 1563  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1564  p19
+ 1565  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1566  p19
+ 1567  petalinux-build 
+ 1568  ls
+ 1569  p19
+ 1570  petalinux-config --get-hw-description=../hw
+ 1571  petalinux-build -c device-tree -x cleanall
+ 1572  p19
+ 1573  petalinux-config --get-hw-description=../hw
+ 1574  petalinux-build -c device-tree -x cleanall
+ 1575  petalinux-build -c device-tree 
+ 1576  petalinux-build -c libiio -x cleanall
+ 1577  petalinux-build -c libiio 
+ 1578  petalinux-build -c libad9361-iio -x cleanall
+ 1579  petalinux-build -c libad9361-iio 
+ 1580  petalinux-build -c fsbl
+ 1581  petalinux-build -c bootloader
+ 1582  petalinux-build 
+ 1583  petalinux-build -c bootloader
+ 1584  petalinux-build -c fsbl
+ 1585  petalinux-build -c device-tree 
+ 1586  p19
+ 1587  petalinux-config --get-hw-description=../hw
+ 1588  petalinux-build -c device-tree -x cleanall
+ 1589  petalinux-build -c device-tree
+ 1590  petalinux-build -c libiio -x cleanall
+ 1591  petalinux-build -c libiio 
+ 1592  petalinux-build -c libad9361-iio -x cleanall
+ 1593  petalinux-build -c libad9361-iio 
+ 1594  petalinux-build 
+ 1595  p19
+ 1596  petalinux-create -t project -n zynq_sdrBo --template zynq
+ 1597  cd zynq_sdrBo/
+ 1598  petalinux-config --get-hw-description=../hw
+ 1599  petalinux-build -c device-tree -x cleanall
+ 1600  petalinux-build -c device-tree 
+ 1601  petalinux-build -c libiio -x cleanall
+ 1602  petalinux-build -c libiio 
+ 1603  petalinux-build -c libad9361-iio -x cleanall
+ 1604  petalinux-build -c libad9361-iio 
+ 1605  petalinux-build 
+ 1606  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1607  p19
+ 1608  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1609  cp BOOT.BIN /media/rgc/BOOT/
+ 1610  cp zImage /media/rgc/BOOT/
+ 1611  cp system.dtb /media/rgc/BOOT/
+ 1612  sync
+ 1613  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1614  sync
+ 1615  sudo rm -rf *
+ 1616  sync
+ 1617  p19
+ 1618  petalinux-config -c rootfs
+ 1619  petalinux-build -c rootfs
+ 1620  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1621  sysnc
+ 1622  sync
+ 1623  ls
+ 1624  find /opt/pkg/petalinux -name "htop*.bb"
+ 1625  p19
+ 1626  petalinux-config -c rootfs
+ 1627  petalinux-build -x listlayers
+ 1628  source components/yocto/environment-setup-cortexa9t2hf-neon-xilinx-linux-gnueabi
+ 1629  cat build/conf/bblayers.conf
+ 1630  bitbake-layers show-recipes | grep htop
+ 1631  bitbake -s | grep htop
+ 1632  bitbake-layers show-recipes | grep htop
+ 1633  petalinux-build -c htop
+ 1634  petalinux-config -c rootfs
+ 1635  ls
+ 1636  grep -R "IMAGE_INSTALL" project-spec/meta-user/conf
+ 1637  cat project-spec/meta-user/conf/petalinuxbsp.conf
+ 1638  petalinux-build -c rootfs
+ 1639  p19
+ 1640  petalinux-build -c rootfs
+ 1641  petalinux-config -c rootfs
+ 1642  p19
+ 1643  petalinux-build -c rootfs
+ 1644  petalinux-config -c rootfs
+ 1645  petalinux-build -c htop -x package
+ 1646  petalinux-config -c rootfs
+ 1647  grep -R "IMAGE_INSTALL" project-spec
+ 1648  p19
+ 1649  petalinux-build
+ 1650  petalinux-config -c rootfs
+ 1651  cat project-spec/meta-plnx-generated/recipes-core/images/petalinux-user-image.bb
+ 1652  find build/tmp/work -path "*rootfs*" | grep "/usr/bin/htop"
+ 1653  find build/tmp/work -name htop
+ 1654  find build/tmp/work -path "*rootfs*" | grep "/usr/bin/htop"
+ 1655  petalinux-build -c rootfs
+ 1656  petalinux-config -c rootfs
+ 1657  p19
+ 1658  petalinux-build 
+ 1659  p19
+ 1660  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  
+ 1661  p19
+ 1662  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot  --force
+ 1663  mkdir -p project-spec/meta-user/recipes-core/images
+ 1664  project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend
+ 1665  pwd
+ 1666  ls
+ 1667  project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend
+ 1668  nano project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend
+ 1669  cat project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend
+ 1670  p19
+ 1671  petalinux-build -x mrproper
+ 1672  petalinux-build
+ 1673  find build/tmp/work -path "*rootfs*" | grep "/usr/bin/htop"
+ 1674  bitbake-layers show-appends | grep petalinux-user-image
+ 1675  ls -l project-spec/meta-user/recipes-core/images
+ 1676  cat project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend
+ 1677  petalinux-build -c htop -x devshell
+ 1678  p19
+ 1679  cd ~/work/zynq_sdrBo
+ 1680  bitbake-layers show-appends
+ 1681  which bitbake
+ 1682  which bitbake-layers
+ 1683  echo $PATH
+ 1684  clear
+ 1685  which bitbake
+ 1686  which bitbake-layers
+ 1687  echo $PATH
+ 1688  grep "meta-user" build/conf/bblayers.conf
+ 1689  clear
+ 1690  grep "meta-user" build/conf/bblayers.conf
+ 1691  cat project-spec/meta-user/conf/layer.conf
+ 1692  find project-spec/meta-user -name "*.bbappend"
+ 1693  head -40 project-spec/meta-plnx-generated/recipes-core/images/petalinux-user-image.bb
+ 1694  grep -n "^require\|^inherit\|^IMAGE_INSTALL" project-spec/meta-plnx-generated/recipes-core/images/petalinux-user-image.bb
+ 1695  find build/tmp/pkgdata -name htop
+ 1696  find build/tmp/pkgdata -type f | grep htop
+ 1697  petalinux-build -c petalinux-user-image -x do_rootfs -v
+ 1698  grep -i htop build/tmp/work/*/*/petalinux-user-image/*/temp/log.do_rootfs
+ 1699  find build/tmp -name "log.do_rootfs"
+ 1700  p19
+ 1701  petalinux-build -c rootfs
+ 1702  petalinux-config -c rootfs
+ 1703  petalinux-build -c rootfs
+ 1704  sudo rm -rf *
+ 1705  sync
+ 1706  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1707  sync
+ 1708  p19
+ 1709  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot 
+ 1710  find components/yocto -name "nano*.bb"
+ 1711  find . -name "nano*.bb"
+ 1712  find components/yocto/layers -name "nano*.bb"
+ 1713  p19
+ 1714  petalinux-config -c rootfs
+ 1715  ls
+ 1716  find . -type d -name "meta-openembedded"
+ 1717  find . -type d -name "meta-*"
+ 1718  sudo rm -rf *
+ 1719  sync
+ 1720  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1721  sync
+ 1722  p19
+ 1723  history
+ 1724  petalinux-build -c rootfs
+ 1725  petalinux-config -c rootfs
+ 1726  petalinux-build -c rootfs
+ 1727  find /opt/pkg/petalinux/2019.2 -name "nano*.bb"
+ 1728  sudo rm -rf *
+ 1729  sync
+ 1730  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1731  sync
+ 1732  sudo rm -rf *
+ 1733  sync
+ 1734  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1735  sync
+ 1736  p19
+ 1737  petalinux-config -c rootfs
+ 1738  petalinux-build -c rootfs
+ 1739  sudo rm -rf *
+ 1740  sync
+ 1741  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1742  sync
+ 1743  p19
+ 1744  petalinux-config -c rootfs
+ 1745  petalinux-build -c rootfs
+ 1746  petalinux-config -c rootfs
+ 1747  p19
+ 1748  petalinux-config -c rootfs
+ 1749  petalinux-build -c rootfs
+ 1750  sudo rm -rf *
+ 1751  sync
+ 1752  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1753  sync
+ 1754  sudo apt install tree
+ 1755  bitbake --version
+ 1756  p19
+ 1757  bitbake --version
+ 1758  petalinux-util --webtalk off
+ 1759  bitbake --version
+ 1760  source settings.sh
+ 1761  bitbake --version
+ 1762  p19
+ 1763  bitbake --version
+ 1764  bitbake-layers show-layers
+ 1765  git branch
+ 1766  git log --oneline -5
+ 1767  ls
+ 1768  git clone -b 2019_R2 https://github.com/analogdevicesinc/meta-adi.git
+ 1769  git clone -b 2019_R2 https://github.com/analogdevicesinc/meta-adi.git
+ 1770  bitbake --version
+ 1771  cd /opt/pkg/petalinux/2019.2
+ 1772  source settings.sh
+ 1773  cd ~/work/zynq_sdrBo
+ 1774  bitbake --version
+ 1775  bitbake-layers show-layers
+ 1776  p19
+ 1777  petalinux bitbake-layers show-layers
+ 1778  petalinux bitbake --version
+ 1779  echo $PETALINUX
+ 1780  echo $PATH
+ 1781  which petalinux-build
+ 1782  find /opt/pkg/petalinux/2019.2 -name bitbake 2>/dev/null
+ 1783  /opt/pkg/petalinux/2019.2/components/yocto/source/arm/layers/core/bitbake/bin/bitbake --version
+ 1784  tree -L 2
+ 1785  grep -E "LAYERDEPENDS|LAYERSERIES_COMPAT" ~/work/zynq_sdrBo/layers/meta-adi/meta-adi-core/conf/layer.conf
+ 1786  grep -E "LAYERDEPENDS|LAYERSERIES_COMPAT" ~/work/zynq_sdrBo/layers/meta-adi/meta-adi-xilinx/conf/layer.conf
+ 1787  clear
+ 1788  grep -E "LAYERDEPENDS|LAYERSERIES_COMPAT" ~/work/zynq_sdrBo/layers/meta-adi/meta-adi-core/conf/layer.conf
+ 1789  grep -E "LAYERDEPENDS|LAYERSERIES_COMPAT" ~/work/zynq_sdrBo/layers/meta-adi/meta-adi-xilinx/conf/layer.conf
+ 1790  nano build/conf/bblayers.conf
+ 1791  p19
+ 1792  petalinux-config --get-hw-description
+ 1793  p19
+ 1794  petalinux-config --help | grep -i layer
+ 1795  p19
+ 1796  petalinux-config --help | grep -i layer
+ 1797  petalinux-config 
+ 1798  p19
+ 1799  petalinux-config --get-hw-description
+ 1800  petalinux-config --help | grep -i layer
+ 1801  petalinux-config --help
+ 1802  grep -R "BBLAYERS" ~/work/zynq_sdrBo -n
+ 1803  grep -R "meta-user" ~/work/zynq_sdrBo -n
+ 1804  grep -R "bblayers.conf" project-spec components build -n
+ 1805  grep -R "meta-plnx-generated" project-spec -n
+ 1806  find build -name bblayers.conf
+ 1807  grep -R "BBLAYERS" project-spec components build/conf -n
+ 1808  p19
+ 1809  petalinux-build
+ 1810  grep "meta-adi" build/conf/bblayers.conf
+ 1811  bitbake-layers show-layers
+ 1812  /opt/pkg/petalinux/2019.2/components/yocto/source/arm/layers/core/bitbake/bin/bitbake-layers show-layers
+ 1813  p19
+ 1814  /opt/pkg/petalinux/2019.2/components/yocto/source/arm/layers/core/bitbake/bin/bitbake-layers show-layers
+ 1815  p19
+ 1816  petalinux-build
+ 1817  p19
+ 1818  petalinux-config
+ 1819  /opt/pkg/petalinux/2019.2/components/yocto/source/arm/layers/core/bitbake/bin/bitbake-layers show-layers
+ 1820  source /opt/pkg/petalinux/2019.2/settings.sh
+ 1821  petalinux-build --sdk
+ 1822  bitbake-layers show-layers
+ 1823  /opt/pkg/petalinux/2019.2/components/yocto/source/arm/layers/core/bitbake/bin/bitbake-layers show-layers
+ 1824  git branch --show-current
+ 1825  git branch
+ 1826  ls
+ 1827  find ~/work/zynq_sdrBo/layers/meta-adi/meta-adi-xilinx -name "*device-tree*"
+ 1828  find ~/work/zynq_sdrBo/layers/meta-adi/meta-adi-xilinx -name "*.bbappend"
+ 1829  grep -R "pl-delete-nodes" ~/work/zynq_sdrBo/layers/meta-adi/meta-adi-xilinx
+ 1830  grep -R "KERNEL_DTB" ~/work/zynq_sdrBo/layers/meta-adi/meta-adi-xilinx
+ 1831  grep -R "KERNEL_DTB" ~/work/Analogdevicesinc/linux
+ 1832  grep -R "^KERNEL_DTB" ~/work/zynq_sdrBo/build/tmp/work/plnx_zynq7-xilinx-linux-gnueabi/device-tree/*/
+ 1833  pwd
+ 1834  ls
+ 1835  cd build/
+ 1836  ls
+ 1837  source /opt/pkg/petalinux/2019.2/settings.sh
+ 1838  bitbake-layers show-layers
+ 1839  /opt/pkg/petalinux/2019.2/components/yocto/source/arm/layers/core/bitbake/bin/bitbake-layers show-layers
+ 1840  cd ../
+ 1841  ls
+ 1842  petalinux-config
+ 1843  petalinux-build
+ 1844  p19
+ 1845  petalinux-config --get-hw-description
+ 1846  history
+ 1847  petalinux-config --get-hw-description=../hw
+ 1848  p19
+ 1849  petalinux-config --get-hw-description=../hw
+ 1850  p19
+ 1851  petalinux-create -t project -n zynq_sdrBo --template zynq
+ 1852  cd zynq_sdrBo/
+ 1853  petalinux-config --get-hw-description ../hw
+ 1854  p19
+ 1855  petalinux-build
+ 1856  petalinux-config 
+ 1857  petalinux-build
+ 1858  petalinux-config 
+ 1859  petalinux-build
+ 1860  p19
+ 1861  petalinux-config
+ 1862  history
+ 1863  petalinux-build -c kernel
+ 1864  petalinux-config -c kernel
+ 1865  git checkout 2019_R2
+ 1866  git branch 
+ 1867  git clone https://github.com/analogdevicesinc/meta-adi.git
+ 1868  p19
+ 1869  petalinux-build -c kernel
+ 1870  p19
+ 1871  petalinux-create -t project -n zynq_sdrBo --template zynq
+ 1872  cd zynq_sdrBo/
+ 1873  petalinux-config --get-hw-description ../hw
+ 1874  pwd
+ 1875  p19
+ 1876  petalinux-build -c devicetree
+ 1877  petalinux-build 
+ 1878  petalinux-config
+ 1879  petalinux-build 
+ 1880  petalinux-build -c kernel
+ 1881  p19
+ 1882  petalinux-build -c kernel
+ 1883  pwd
+ 1884  p19
+ 1885  petalinux-build -x mrproper
+ 1886  petalinux-build -c kernel
+ 1887  p19
+ 1888  petalinux-create -t project -n zynq_sdrBo --template zynq
+ 1889  cd zynq_sdrBo/
+ 1890  petalinux-config --get-hw-description ../hw
+ 1891  petalinux-build -c kernel
+ 1892  p19
+ 1893  petalinux-create -t project -n zynq_sdrBo --template zynq
+ 1894  cd zynq_sdrBo/
+ 1895  petalinux-config --get-hw-description ../hw
+ 1896  petalinux-build -c kernel
+ 1897  ls -ld /home/rgc/work/zynq_sdrBo/meta-adi-xilinx
+ 1898  ll
+ 1899  ls
+ 1900  cd ~/work/dsp_controller/IP_Repo/Register_controller_1.0
+ 1901  vivado -mode gui component.xml
+ 1902  vivado component.xml
+ 1903  cd ~/work/dsp_controller/IP_Repo/Register_controller_1.0
+ 1904  head -20 component.xml
+ 1905  gedit Register_controller_v1_0_S00_AXI.v
+ 1906  gedit Register_controller_v1_0.v
+ 1907  dtc -I dtb -O dts -o P201pro_v21.dts system.dtb 
+ 1908  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot 
+ 1909  p19
+ 1910  petalinux-package --boot --fsbl zynq_fsbl.elf --fpga system.bit --u-boot 
+ 1911  dtc -I dtb -O dts -o P201pro_v24.dts system.dtb 
+ 1912  p19
+ 1913  petalinux-build -c devicetree -x cleanall
+ 1914  petalinux-build -c devicetree -x cleanssate
+ 1915  history
+ 1916  petalinux-build -c device-tree -x cleanall
+ 1917  petalinux-build -c device-tree 
+ 1918  p19
+ 1919  petalinux-config --get-hw-description ../hw
+ 1920  petalinux-build -c device-tree 
+ 1921  petalinux-build -c libiio 
+ 1922  petalinux-build -c libad9361-iio -x cleanall
+ 1923  petalinux-build -c libad9361-iio
+ 1924  petalinux-build -c kernel
+ 1925  clear
+ 1926  petalinux-build 
+ 1927  gedit
+ 1928  geit
+ 1929  gedit
+ 1930  geit
+ 1931  gedit
+ 1932  geit
+ 1933  gedirt
+ 1934  gedit
+ 1935  p19
+ 1936  make
+ 1937  p19
+ 1938  make
+ 1939  tree
+ 1940  rm -rf Makefile/
+ 1941  touch Makefile
+ 1942  touch RegisterController.h 
+ 1943  gedit RegisterController.cpp 
+ 1944  gedit RegisterController.h 
+ 1945  p19
+ 1946  make
+ 1947  ls -l bin
+ 1948  ping 192.168.1.10 
+ 1949  grep -n "dropbear" project-spec/configs/rootfs_config
+ 1950  sudo rm -rf all
+ 1951  sudo rm -rf *
+ 1952  sync
+ 1953  sudo tar -xvf rootfs.tar.gz -C /media/rgc/rootfs
+ 1954  sync
+ 1955  history
+ 1956  ping 192.168.1.10
+ 1957  scp bin/sdr_app root@192.168.1.10:/home/root/
+ 1958  file bin/sdr_app
+ 1959  p19
+ 1960  petalinux-config -c rootfs
+ 1961  petalinux-build -c rootfs
+ 1962  petalinux-config -c rootfs
+ 1963  petalinux-build -c rootfs
+ 1964  petalinux-config -c rootfs
+ 1965  petalinux-build -c rootfs cleanall
+ 1966  petalinux-build -x rootfs cleanall
+ 1967  petalinux-build -x rootfs cleansstat
+ 1968  petalinux-build -c rootfs 
+ 1969  petalinux-config -c rootfs
+ 1970  petalinux-build -c rootfs 
+ 1971  petalinux-config -c rootfs
+ 1972  petalinux-build -c rootfs 
+ 1973  scp bin/sdr_app root@192.168.1.10:/home/root/
+ 1974  cd /home/
+ 1975  ls
+ 1976  putty
+ 1977  ssh-keygen -f ~/.ssh/known_hosts -R 192.168.1.10
+ 1978  scp bin/sdr_app root@192.168.1.10:/home/root/
+ 1979  puttty
+ 1980  putty
+ 1981  scp bin/sdr_app  root@192.168.1.10:/home/root/
+ 1982  history
+rgc@ubuntu:~/work/sdr_app$ 
