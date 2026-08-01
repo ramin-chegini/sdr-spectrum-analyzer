@@ -33,6 +33,16 @@ public:
 
     void setParam1(uint32_t value);
 
+    uint32_t getMode();
+
+    uint32_t getFilter();
+
+    uint32_t getParam0();
+
+    uint32_t getParam1();
+
+    bool isEnabled();    
+
 private:
 
     int fd;

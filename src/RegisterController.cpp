@@ -133,6 +133,31 @@ void RegisterController::setParam1(uint32_t value)
                   value);
 }
 
+uint32_t RegisterController::getMode()
+{
+    return readRegister(REG_MODE);
+}
+
+uint32_t RegisterController::getFilter()
+{
+    return readRegister(REG_FILTER);
+}
+
+uint32_t RegisterController::getParam0()
+{
+    return readRegister(REG_PARAM0);
+}
+
+uint32_t RegisterController::getParam1()
+{
+    return readRegister(REG_PARAM1);
+}
+
+bool RegisterController::isEnabled()
+{
+    return (readRegister(REG_CONTROL) & CTRL_ENABLE) != 0;
+}
+
 
 
 
