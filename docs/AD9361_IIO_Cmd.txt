@@ -1,0 +1,199 @@
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/in_voltage0_hardwaregain
+71.000000 dB
+root@pzp201pro:~# iio_attr -c ad9361-phy voltage0 hardwaregain
+71.000000 dB
+-10.000000 dB
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/in_voltage_rf_bandwidth
+10000000
+root@pzp201pro:~# iio_attr -c ad9361-phy voltage0 rf_bandwidth
+10000000
+10000000
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/in_voltage_sampling_frequency
+30720000
+root@pzp201pro:~# iio_attr -c ad9361-phy voltage0 sampling_frequency
+30720000
+30720000
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/in_voltage0_gain_control_mode
+slow_attack
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/in_voltage0_rssi
+116.50 dB
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/in_voltage0_rf_port_select
+A_BALANCED
+root@pzp201pro:~# iio_attr -c ad9361-phy voltage1 hardwaregain
+-10.000000 dB
+71.000000 dB
+root@pzp201pro:~# iio_attr -c ad9361-phy voltage1 rf_bandwidth
+10000000
+10000000
+root@pzp201pro:~# iio_attr -c ad9361-phy voltage1 sampling_frequency
+30720000
+30720000
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/in_voltage1_gain_control_mode
+slow_attack
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/in_voltage1_rssi
+117.00 dB
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/in_voltage1_rf_port_select
+A_BALANCED
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/out_voltage0_hardwaregain
+-10.000000 dB
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/out_voltage_rf_bandwidth
+10000000
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/out_voltage_sampling_frequency
+30720000
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/out_voltage0_rf_port_select
+A
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/out_voltage1_hardwaregain
+-10.000000 dB
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/out_voltage1_rf_port_select
+A
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/out_altvoltage0_RX_LO_frequency
+2400000000
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/out_altvoltage1_TX_LO_frequency
+2400000000
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/in_voltage_sampling_frequency
+30720000
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/out_voltage_sampling_frequency
+30720000
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/in_voltage_rf_bandwidth
+10000000
+root@pzp201pro:~# cat /sys/bus/iio/devices/iio:device0/out_voltage_rf_bandwidth
+10000000
+
+
+=========================================
+AD9361 RX/TX Quick Command Reference
+=========================================
+
+=====================
+RX1
+=====================
+
+Read Gain
+cat /sys/bus/iio/devices/iio:device0/in_voltage0_hardwaregain
+
+Set Gain (Manual mode only)
+echo 30 > /sys/bus/iio/devices/iio:device0/in_voltage0_hardwaregain
+
+Read Gain Control Mode
+cat /sys/bus/iio/devices/iio:device0/in_voltage0_gain_control_mode
+
+Set Manual Mode
+echo manual > /sys/bus/iio/devices/iio:device0/in_voltage0_gain_control_mode
+
+Read RSSI
+cat /sys/bus/iio/devices/iio:device0/in_voltage0_rssi
+
+Read RF Port
+cat /sys/bus/iio/devices/iio:device0/in_voltage0_rf_port_select
+
+
+=====================
+RX2
+=====================
+
+Read Gain
+cat /sys/bus/iio/devices/iio:device0/in_voltage1_hardwaregain
+
+Read Gain Control Mode
+cat /sys/bus/iio/devices/iio:device0/in_voltage1_gain_control_mode
+
+Read RSSI
+cat /sys/bus/iio/devices/iio:device0/in_voltage1_rssi
+
+Read RF Port
+cat /sys/bus/iio/devices/iio:device0/in_voltage1_rf_port_select
+
+
+=====================
+RX Common
+=====================
+
+Read RX LO
+cat /sys/bus/iio/devices/iio:device0/out_altvoltage0_RX_LO_frequency
+
+Set RX LO
+echo 2400000000 > /sys/bus/iio/devices/iio:device0/out_altvoltage0_RX_LO_frequency
+
+Read RX Bandwidth
+cat /sys/bus/iio/devices/iio:device0/in_voltage_rf_bandwidth
+
+Set RX Bandwidth
+echo 10000000 > /sys/bus/iio/devices/iio:device0/in_voltage_rf_bandwidth
+
+Read RX Sample Rate
+cat /sys/bus/iio/devices/iio:device0/in_voltage_sampling_frequency
+
+Set RX Sample Rate
+echo 30720000 > /sys/bus/iio/devices/iio:device0/in_voltage_sampling_frequency
+
+
+=====================
+TX1
+=====================
+
+Read TX1 Attenuation
+cat /sys/bus/iio/devices/iio:device0/out_voltage0_hardwaregain
+
+Set TX1 Attenuation
+echo -10 > /sys/bus/iio/devices/iio:device0/out_voltage0_hardwaregain
+
+Read TX1 RF Port
+cat /sys/bus/iio/devices/iio:device0/out_voltage0_rf_port_select
+
+
+=====================
+TX2
+=====================
+
+Read TX2 Attenuation
+cat /sys/bus/iio/devices/iio:device0/out_voltage1_hardwaregain
+
+Set TX2 Attenuation
+echo -10 > /sys/bus/iio/devices/iio:device0/out_voltage1_hardwaregain
+
+Read TX2 RF Port
+cat /sys/bus/iio/devices/iio:device0/out_voltage1_rf_port_select
+
+
+=====================
+TX Common
+=====================
+
+Read TX LO
+cat /sys/bus/iio/devices/iio:device0/out_altvoltage1_TX_LO_frequency
+
+Set TX LO
+echo 2400000000 > /sys/bus/iio/devices/iio:device0/out_altvoltage1_TX_LO_frequency
+
+Read TX Bandwidth
+cat /sys/bus/iio/devices/iio:device0/out_voltage_rf_bandwidth
+
+Set TX Bandwidth
+echo 10000000 > /sys/bus/iio/devices/iio:device0/out_voltage_rf_bandwidth
+
+Read TX Sample Rate
+cat /sys/bus/iio/devices/iio:device0/out_voltage_sampling_frequency
+
+Set TX Sample Rate
+echo 30720000 > /sys/bus/iio/devices/iio:device0/out_voltage_sampling_frequency
+
+
+=====================
+Notes
+=====================
+
+- RX Gain can only be changed after setting:
+  gain_control_mode = manual
+
+- RX1 and RX2 share:
+  * RX LO
+  * RF Bandwidth
+  * Sample Rate
+
+- TX1 and TX2 share:
+  * TX LO
+  * RF Bandwidth
+  * Sample Rate
+
+
+
