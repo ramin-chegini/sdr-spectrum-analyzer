@@ -3,12 +3,16 @@
 #include <cstdlib>
 
 #include "RegisterController.h"
+#include "dma.h"
 
 using namespace std;
 
 static void printHelp()
 {
     cout << "Usage:" << endl;
+    cout << endl;
+
+    cout << "Register Controller Commands:" << endl;
     cout << "  sdr_app enable" << endl;
     cout << "  sdr_app disable" << endl;
     cout << "  sdr_app reset" << endl;
@@ -17,17 +21,16 @@ static void printHelp()
     cout << "  sdr_app param0 <value>" << endl;
     cout << "  sdr_app param1 <value>" << endl;
     cout << "  sdr_app status" << endl;
+
+    cout << endl;
+
+    cout << "DMA Commands:" << endl;
+    cout << "  sdr_app dma" << endl;
+    cout << "  sdr_app dma reset" << endl;
 }
 
 int main(int argc, char *argv[])
 {
-    RegisterController fpga;
-
-    if (!fpga.open())
-    {
-        cout << "FPGA Open Failed" << endl;
-        return -1;
-    }
 
     if (argc < 2)
     {
@@ -36,6 +39,52 @@ int main(int argc, char *argv[])
     }
 
     string cmd(argv[1]);
+
+    if (cmd == "dma")
+    {
+        if (dma_init() != 0)
+        {
+            cout << "DMA initialization failed." << endl;
+            return -1;
+        }
+
+        if (argc == 2)
+        {
+            dma_print_status();
+        }
+        else if (argc == 3)
+        {
+            string subcmd(argv[2]);
+
+            if (subcmd == "reset")
+            {
+                dma_reset();
+
+                cout << "DMA Reset Done" << endl;
+
+                dma_print_status();
+            }
+            else
+            {
+                cout << "Unknown DMA command: "
+                    << subcmd << endl;
+            }
+        }
+
+        dma_close();
+
+        return 0;
+    }
+
+    RegisterController fpga;
+
+
+    if (!fpga.open())
+    {
+        cout << "FPGA Open Failed" << endl;
+        return -1;
+    }
+
 
     if (cmd == "enable")
     {
