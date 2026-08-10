@@ -61,4 +61,8 @@ void dma_print_status(void);
 int dma_start(uint32_t dst_addr, uint32_t length);
 int dma_stop(void);
 
+void dma_start_s2mm(uint32_t buffer_addr, uint32_t length);
+bool dma_wait_for_completion(uint32_t timeout_ms);
+void dma_stop_s2mm(void);
+
 #endif /* DMA_H */

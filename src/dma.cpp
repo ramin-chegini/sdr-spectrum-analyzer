@@ -106,6 +106,147 @@ void dma_reset(void)
 }
 
 /*----------------------------------------------------------
+ * Start S2MM Simple Transfer
+ *---------------------------------------------------------*/
+void dma_start_s2mm(uint32_t buffer_addr, uint32_t length)
+{
+    if (dma_regs == nullptr)
+    {
+        printf("DMA is not initialized.\n");
+        return;
+    }
+
+    printf("\nStarting S2MM transfer...\n");
+    printf("Destination : 0x%08X\n", buffer_addr);
+    printf("Length      : %u bytes\n", length);
+
+    /*
+     * Reset DMA
+     */
+    dma_reset();
+
+    /*
+     * Start S2MM channel
+     *
+     * RS            = Run/Stop
+     * IOC_IRQ_EN    = Interrupt on Complete
+     * ERR_IRQ_EN    = Error Interrupt
+     */
+    uint32_t dmacr =
+        SDR_DMA_DMACR_RS |
+        SDR_DMA_DMACR_IOC_IRQ_EN |
+        SDR_DMA_DMACR_ERR_IRQ_EN;
+
+    dma_write_reg(
+        SDR_DMA_S2MM_DMACR,
+        dmacr
+    );
+
+    /*
+     * Set destination address
+     */
+    dma_write_reg(
+        SDR_DMA_S2MM_DA,
+        buffer_addr
+    );
+
+    /*
+     * Writing LENGTH starts the transfer
+     */
+    dma_write_reg(
+        SDR_DMA_S2MM_LENGTH,
+        length
+    );
+
+    printf(
+        "DMACR = 0x%08X\n",
+        dma_read_reg(SDR_DMA_S2MM_DMACR)
+    );
+
+    printf(
+        "DMASR = 0x%08X\n",
+        dma_read_reg(SDR_DMA_S2MM_DMASR)
+    );
+
+    printf(
+        "S2MM_DA = 0x%08X\n",
+        dma_read_reg(SDR_DMA_S2MM_DA)
+    );
+
+    printf(
+        "S2MM_LENGTH = %u\n",
+        dma_read_reg(SDR_DMA_S2MM_LENGTH)
+    );
+}
+
+/*----------------------------------------------------------
+ * Wait for S2MM completion
+ *---------------------------------------------------------*/
+bool dma_wait_for_completion(uint32_t timeout_ms)
+{
+    if (dma_regs == nullptr)
+    {
+        return false;
+    }
+
+    for (uint32_t i = 0; i < timeout_ms; i++)
+    {
+        uint32_t status = dma_status();
+
+        if (status & SDR_DMA_DMASR_DMA_INT_ERR)
+        {
+            printf("DMA Internal Error\n");
+            return false;
+        }
+
+        if (status & SDR_DMA_DMASR_DMA_SLV_ERR)
+        {
+            printf("DMA Slave Error\n");
+            return false;
+        }
+
+        if (status & SDR_DMA_DMASR_DMA_DEC_ERR)
+        {
+            printf("DMA Decode Error\n");
+            return false;
+        }
+
+        if (status & SDR_DMA_DMASR_IOC_IRQ)
+        {
+            printf("DMA transfer completed.\n");
+            return true;
+        }
+
+        usleep(1000);
+    }
+
+    printf(
+        "DMA timeout after %u ms.\n",
+        timeout_ms
+    );
+
+    return false;
+}
+
+/*----------------------------------------------------------
+ * Stop S2MM
+ *---------------------------------------------------------*/
+void dma_stop_s2mm(void)
+{
+    if (dma_regs == nullptr)
+    {
+        return;
+    }
+
+    dma_write_reg(
+        SDR_DMA_S2MM_DMACR,
+        0
+    );
+
+    printf("S2MM stopped.\n");
+}
+
+/*----------------------------------------------------------
  * Read Status Register
  *---------------------------------------------------------*/
 uint32_t dma_status(void)

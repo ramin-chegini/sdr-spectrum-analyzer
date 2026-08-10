@@ -27,6 +27,7 @@ static void printHelp()
     cout << "DMA Commands:" << endl;
     cout << "  sdr_app dma" << endl;
     cout << "  sdr_app dma reset" << endl;
+    cout << "  sdr_app dma capture" << endl;
 }
 
 int main(int argc, char *argv[])
@@ -39,6 +40,8 @@ int main(int argc, char *argv[])
     }
 
     string cmd(argv[1]);
+
+    RegisterController fpga;
 
     if (cmd == "dma")
     {
@@ -64,10 +67,71 @@ int main(int argc, char *argv[])
 
                 dma_print_status();
             }
+            else if (subcmd == "capture")
+            {
+                const uint32_t dma_buffer_addr = 0x3F000000;
+                const uint32_t dma_length = 4096;
+
+                cout << endl;
+                cout << "====================================" << endl;
+                cout << " AXI DMA S2MM Capture" << endl;
+                cout << "====================================" << endl;
+
+                cout << "Buffer Address : 0x"
+                    << hex << dma_buffer_addr << dec << endl;
+
+                cout << "Transfer Length: "
+                    << dma_length << " bytes" << endl;
+
+                /*
+                 * Open FPGA register controller
+                 */
+                if (!fpga.open())
+                {
+                    cout << "FPGA Open Failed" << endl;
+                    dma_close();
+                    return -1;
+                } 
+
+                /*
+                 * Start DMA first
+                 */                                     
+
+                dma_start_s2mm(
+                    dma_buffer_addr,
+                    dma_length
+                );
+
+                /*
+                 * Then enable AXI Stream Counter
+                 */
+                fpga.enableDSP(true);
+
+                cout << endl;
+                cout << "Waiting for DMA completion..." << endl;
+
+                if (dma_wait_for_completion(5000))
+                {
+                    cout << "DMA Capture Completed" << endl;
+                }
+                else
+                {
+                    cout << "DMA Capture Failed" << endl;
+                }
+
+                /*
+                 * Stop Counter
+                 */
+                fpga.enableDSP(false);
+
+                dma_print_status();
+            }
             else
             {
                 cout << "Unknown DMA command: "
                     << subcmd << endl;
+
+                printHelp();
             }
         }
 
@@ -75,9 +139,6 @@ int main(int argc, char *argv[])
 
         return 0;
     }
-
-    RegisterController fpga;
-
 
     if (!fpga.open())
     {
