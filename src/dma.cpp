@@ -1,13 +1,14 @@
 #include "dma.h"
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstdint>
-
+#include <poll.h>
+#include <errno.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
 
+
+static int uio_fd = -1;
 static int dma_fd = -1;
 static volatile uint32_t *dma_regs = nullptr;
 
@@ -46,6 +47,36 @@ int dma_init(void)
     printf("Map Size     : 0x%08X\n", SDR_DMA_MAP_SIZE);
 
     return 0;
+}
+
+/*----------------------------------------------------------
+ * Open Interrupt DMA
+ *---------------------------------------------------------*/
+int dma_irq_init(void)
+{
+    uio_fd = open("/dev/uio0", O_RDWR);
+
+    if (uio_fd < 0)
+    {
+        perror("open(/dev/uio0)");
+        return -1;
+    }
+
+    printf("DMA UIO opened successfully.\n");
+
+    return 0;
+}
+
+/*----------------------------------------------------------
+ * Close Interrupt DMA
+ *---------------------------------------------------------*/
+void dma_irq_close(void)
+{
+    if (uio_fd >= 0)
+    {
+        close(uio_fd);
+        uio_fd = -1;
+    }
 }
 
 /*----------------------------------------------------------
@@ -186,44 +217,89 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
 {
     if (dma_regs == nullptr)
     {
+        printf("DMA is not initialized.\n");
         return false;
     }
 
-    for (uint32_t i = 0; i < timeout_ms; i++)
+    if (uio_fd < 0)
     {
-        uint32_t status = dma_status();
+        printf("UIO is not initialized.\n");
+        return false;
+    }
 
-        if (status & SDR_DMA_DMASR_DMA_INT_ERR)
-        {
-            printf("DMA Internal Error\n");
-            return false;
-        }
+    struct pollfd pfd;
 
-        if (status & SDR_DMA_DMASR_DMA_SLV_ERR)
-        {
-            printf("DMA Slave Error\n");
-            return false;
-        }
+    pfd.fd = uio_fd;
+    pfd.events = POLLIN;
+    pfd.revents = 0;
 
-        if (status & SDR_DMA_DMASR_DMA_DEC_ERR)
-        {
-            printf("DMA Decode Error\n");
-            return false;
-        }
+    printf("Waiting for DMA IRQ...\n");
 
-        if (status & SDR_DMA_DMASR_IOC_IRQ)
-        {
-            printf("DMA transfer completed.\n");
-            return true;
-        }
+    int ret = poll(&pfd, 1, timeout_ms);
 
-        usleep(1000);
+    if (ret < 0)
+    {
+        perror("poll(/dev/uio0)");
+        return false;
+    }
+
+    if (ret == 0)
+    {
+        printf("DMA IRQ timeout after %u ms.\n", timeout_ms);
+        return false;
+    }
+
+    uint32_t irq_count = 0;
+
+    ssize_t n = read(
+        uio_fd,
+        &irq_count,
+        sizeof(irq_count)
+    );
+
+    if (n != sizeof(irq_count))
+    {
+        perror("read(/dev/uio0)");
+        return false;
     }
 
     printf(
-        "DMA timeout after %u ms.\n",
-        timeout_ms
+        "DMA IRQ received. UIO count = %u\n",
+        irq_count
     );
+
+    uint32_t status = dma_status();
+
+    printf(
+        "DMASR after IRQ = 0x%08X\n",
+        status
+    );
+
+    if (status & SDR_DMA_DMASR_DMA_INT_ERR)
+    {
+        printf("DMA Internal Error\n");
+        return false;
+    }
+
+    if (status & SDR_DMA_DMASR_DMA_SLV_ERR)
+    {
+        printf("DMA Slave Error\n");
+        return false;
+    }
+
+    if (status & SDR_DMA_DMASR_DMA_DEC_ERR)
+    {
+        printf("DMA Decode Error\n");
+        return false;
+    }
+
+    if (status & SDR_DMA_DMASR_IOC_IRQ)
+    {
+        printf("DMA transfer completed by IRQ.\n");
+        return true;
+    }
+
+    printf("IRQ received, but IOC IRQ is not set.\n");
 
     return false;
 }

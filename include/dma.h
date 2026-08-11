@@ -50,6 +50,9 @@
 int dma_init(void);
 void dma_close(void);
 
+int dma_irq_init(void);
+void dma_irq_close(void);
+
 uint32_t dma_read_reg(uint32_t offset);
 void dma_write_reg(uint32_t offset, uint32_t value);
 
@@ -62,6 +65,7 @@ int dma_start(uint32_t dst_addr, uint32_t length);
 int dma_stop(void);
 
 void dma_start_s2mm(uint32_t buffer_addr, uint32_t length);
+bool dma_wait_for_irq(uint32_t timeout_ms);
 bool dma_wait_for_completion(uint32_t timeout_ms);
 void dma_stop_s2mm(void);
 
