@@ -1,0 +1,15 @@
+>> ssh-keygen -f "/home/rgc/.ssh/known_hosts" -R "192.168.2.10"
+
+
+# Host 192.168.2.10 found: line 2
+/home/rgc/.ssh/known_hosts updated.
+
+>> scp bin/sdr_app root@192.168.2.10:/home/root/
+
+#Are you sure you want to continue connecting (yes/no/[fingerprint])?
+>> yes
+
+
+
+echo uio_pdrv_genirq > /sys/bus/platform/devices/40400000.dma/driver_override
+echo 40400000.dma > /sys/bus/platform/drivers/uio_pdrv_genirq/bind

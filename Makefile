@@ -6,7 +6,8 @@ INC = -Iinclude
 
 SRC = \
 src/main.cpp \
-src/RegisterController.cpp
+src/RegisterController.cpp \
+src/dma.cpp
 
 OUT = bin/sdr_app
 
