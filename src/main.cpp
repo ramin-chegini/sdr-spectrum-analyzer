@@ -117,6 +117,7 @@ int main(int argc, char *argv[])
                 if (!fpga.open())
                 {
                     cout << "FPGA Open Failed" << endl;
+                    dma_irq_close();                    
                     dma_close();
                     return -1;
                 }
@@ -129,6 +130,7 @@ int main(int argc, char *argv[])
                 if (dma_irq_init() != 0)
                 {
                     cout << "DMA UIO initialization failed." << endl;
+                    dma_irq_close();                    
                     dma_close();
                     return -1;
                 }
@@ -163,43 +165,48 @@ int main(int argc, char *argv[])
                  * /dev/uio0 instead of polling DMASR.
                  * ---------------------------------------------
                  */
-                bool capture_ok =
-                    dma_wait_for_completion(5000);
+            bool capture_ok =
+                dma_wait_for_completion(5000);
 
-                /*
-                 * ---------------------------------------------
-                 * Stop AXI-Stream data generation
-                 * ---------------------------------------------
-                 */
-                fpga.enableDSP(false);
+            /*
+            * ---------------------------------------------
+            * Stop AXI-Stream data generation
+            * ---------------------------------------------
+            */
+            fpga.enableDSP(false);
 
-                /*
-                 * ---------------------------------------------
-                 * Report result
-                 * ---------------------------------------------
-                 */
-                if (capture_ok)
-                {
-                    cout << "DMA Capture Completed" << endl;
-                }
-                else
-                {
-                    cout << "DMA Capture Failed" << endl;
-                }
+            /*
+            * ---------------------------------------------
+            * Report result and dump buffer
+            * ---------------------------------------------
+            */
+            if (capture_ok)
+            {
+                cout << "DMA Capture Completed" << endl;
 
-                /*
-                 * ---------------------------------------------
-                 * Print final DMA status
-                 * ---------------------------------------------
-                 */
-                dma_print_status();
+                dma_dump_buffer(
+                    dma_buffer_addr,
+                    dma_length
+                );
+            }
+            else
+            {
+                cout << "DMA Capture Failed" << endl;
+            }
 
-                /*
-                 * ---------------------------------------------
-                 * Close UIO
-                 * ---------------------------------------------
-                 */
-                dma_irq_close();
+            /*
+                * ---------------------------------------------
+                * Print final DMA status
+                * ---------------------------------------------
+                */
+            dma_print_status();
+
+            /*
+                * ---------------------------------------------
+                * Close UIO
+                * ---------------------------------------------
+                */
+            dma_irq_close();
             }
 
             /*
@@ -219,6 +226,7 @@ int main(int argc, char *argv[])
         /*
          * Close DMA register mapping
          */
+        dma_irq_close();
         dma_close();
 
         return 0;
