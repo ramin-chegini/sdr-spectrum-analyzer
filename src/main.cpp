@@ -5,6 +5,7 @@
 
 #include "RegisterController.h"
 #include "dma.h"
+#include "ad9361.h"
 
 using namespace std;
 
@@ -29,6 +30,61 @@ static void printHelp()
     cout << "  sdr_app dma" << endl;
     cout << "  sdr_app dma reset" << endl;
     cout << "  sdr_app dma capture" << endl;
+
+    cout << endl;
+
+    cout << "AD9361 Commands:" << endl;
+    cout << "  sdr_app ad9361 status" << endl;
+
+    cout << endl;
+
+    cout << "RX Commands:" << endl;
+    cout << "  sdr_app ad9361 rx frequency" << endl;
+    cout << "  sdr_app ad9361 rx frequency <Hz>" << endl;
+
+    cout << "  sdr_app ad9361 rx bandwidth" << endl;
+    cout << "  sdr_app ad9361 rx bandwidth <Hz>" << endl;
+
+    cout << "  sdr_app ad9361 rx sample-rate" << endl;
+    cout << "  sdr_app ad9361 rx sample-rate <Hz>" << endl;
+
+    cout << endl;
+
+    cout << "RX1 / RX2 Commands:" << endl;
+    cout << "  sdr_app ad9361 rx1 gain" << endl;
+    cout << "  sdr_app ad9361 rx1 gain <dB>" << endl;
+    cout << "  sdr_app ad9361 rx1 gain-mode" << endl;
+    cout << "  sdr_app ad9361 rx1 gain-mode <mode>" << endl;
+    cout << "  sdr_app ad9361 rx1 agc <mode>" << endl;
+    cout << "  sdr_app ad9361 rx1 rssi" << endl;
+    cout << "  sdr_app ad9361 rx2 gain" << endl;
+    cout << "  sdr_app ad9361 rx2 gain <dB>" << endl;
+    cout << "  sdr_app ad9361 rx2 gain-mode" << endl;
+    cout << "  sdr_app ad9361 rx2 gain-mode <mode>" << endl;
+    cout << "  sdr_app ad9361 rx2 agc <mode>" << endl;
+    cout << "  sdr_app ad9361 rx2 rssi" << endl;
+    cout << "  sdr_app ad9361 rx1 rf-port" << endl;
+    cout << "  sdr_app ad9361 rx1 rf-port <port>" << endl;
+    cout << "  sdr_app ad9361 rx2 rf-port" << endl;
+    cout << "  sdr_app ad9361 rx2 rf-port <port>" << endl;
+
+    cout << endl;
+
+    cout << "TX Commands:" << endl;
+    cout << "  sdr_app ad9361 tx frequency" << endl;
+    cout << "  sdr_app ad9361 tx frequency <Hz>" << endl;
+    cout << "  sdr_app ad9361 tx bandwidth" << endl;
+    cout << "  sdr_app ad9361 tx bandwidth <Hz>" << endl;
+    cout << "  sdr_app ad9361 tx sample-rate" << endl;
+    cout << "  sdr_app ad9361 tx sample-rate <Hz>" << endl;
+    cout << "  sdr_app ad9361 tx1 attenuation" << endl;
+    cout << "  sdr_app ad9361 tx1 attenuation <dB>" << endl;
+    cout << "  sdr_app ad9361 tx2 attenuation" << endl;
+    cout << "  sdr_app ad9361 tx2 attenuation <dB>" << endl;
+    cout << "  sdr_app ad9361 tx1 rf-port" << endl;
+    cout << "  sdr_app ad9361 tx1 rf-port <port>" << endl;
+    cout << "  sdr_app ad9361 tx2 rf-port" << endl;
+    cout << "  sdr_app ad9361 tx2 rf-port <port>" << endl;
 }
 
 int main(int argc, char *argv[])
@@ -42,6 +98,890 @@ int main(int argc, char *argv[])
     string cmd(argv[1]);
 
     RegisterController fpga;
+
+    /*
+     * =========================================================
+     * AD9361 Commands
+     * =========================================================
+     */
+
+    if (cmd == "ad9361")
+    {
+        AD9361Controller ad9361;
+
+        if (!ad9361.init())
+        {
+            cout << "AD9361 initialization failed." << endl;
+            return -1;
+        }
+
+        if (argc < 3)
+        {
+            printHelp();
+            return 0;
+        }
+
+        string subcmd(argv[2]);
+
+        /*
+         * -----------------------------------------------------
+         * AD9361 STATUS
+         * -----------------------------------------------------
+         */
+
+    if (subcmd == "status")
+    {
+        AD9361Controller::AD9361Status status;
+
+        if (!ad9361.getStatus(status))
+        {
+            cout << "Failed to read AD9361 status"
+                << endl;
+
+            return -1;
+        }
+
+        cout << endl;
+        cout << "====================================" << endl;
+        cout << "          AD9361 Status" << endl;
+        cout << "====================================" << endl;
+
+
+        // --------------------------------------------------
+        // RX
+        // --------------------------------------------------
+
+        cout << endl;
+        cout << "[RX]" << endl;
+
+        cout << "RX LO          : "
+            << status.rxFrequency
+            << " Hz" << endl;
+
+        cout << "RX Bandwidth   : "
+            << status.rxBandwidth
+            << " Hz" << endl;
+
+        cout << "RX Sample Rate : "
+            << status.rxSampleRate
+            << " Hz" << endl;
+
+        cout << endl;
+
+        cout << "RX1 Gain       : "
+            << status.rx1Gain
+            << " dB" << endl;
+
+        cout << "RX1 Gain Mode  : "
+            << status.rx1GainMode
+            << endl;
+
+        cout << "RX1 RSSI       : "
+            << status.rx1Rssi
+            << " dB" << endl;
+
+        cout << "RX1 RF Port    : "
+            << status.rx1RfPort
+            << endl;
+
+        cout << endl;
+
+        cout << "RX2 Gain       : "
+            << status.rx2Gain
+            << " dB" << endl;
+
+        cout << "RX2 Gain Mode  : "
+            << status.rx2GainMode
+            << endl;
+
+        cout << "RX2 RSSI       : "
+            << status.rx2Rssi
+            << " dB" << endl;
+
+        cout << "RX2 RF Port    : "
+            << status.rx2RfPort
+            << endl;
+
+
+        // --------------------------------------------------
+        // TX
+        // --------------------------------------------------
+
+        cout << endl;
+        cout << "[TX]" << endl;
+
+        cout << "TX LO          : "
+            << status.txFrequency
+            << " Hz" << endl;
+
+        cout << "TX Bandwidth   : "
+            << status.txBandwidth
+            << " Hz" << endl;
+
+        cout << "TX Sample Rate : "
+            << status.txSampleRate
+            << " Hz" << endl;
+
+        cout << endl;
+
+        cout << "TX1 Attenuation: "
+            << status.tx1Attenuation
+            << " dB" << endl;
+
+        cout << "TX1 RF Port    : "
+            << status.tx1RfPort
+            << endl;
+
+        cout << "TX2 Attenuation: "
+            << status.tx2Attenuation
+            << " dB" << endl;
+
+        cout << "TX2 RF Port    : "
+            << status.tx2RfPort
+            << endl;
+
+
+        // --------------------------------------------------
+        // SYSTEM
+        // --------------------------------------------------
+
+        cout << endl;
+        cout << "[SYSTEM]" << endl;
+
+        cout << "ENSM Mode      : "
+            << status.ensmMode
+            << endl;
+
+        cout << "Calibration    : "
+            << status.calibrationMode
+            << endl;
+
+
+        // --------------------------------------------------
+        // PATH RATES
+        // --------------------------------------------------
+
+        cout << endl;
+        cout << "[RX PATH RATES]" << endl;
+        cout << status.rxPathRates << endl;
+
+        cout << endl;
+        cout << "[TX PATH RATES]" << endl;
+        cout << status.txPathRates << endl;
+
+
+        cout << endl;
+        cout << "====================================" << endl;
+
+        return 0;
+    }
+        /*
+         * =====================================================
+         * RX
+         * =====================================================
+         */
+
+        if (subcmd == "rx")
+        {
+            if (argc < 4)
+            {
+                printHelp();
+                return -1;
+            }
+
+            string parameter(argv[3]);
+
+
+            /*
+             * RX FREQUENCY
+             */
+
+            if (parameter == "frequency")
+            {
+                uint64_t value = 0;
+
+                if (argc == 4)
+                {
+                    if (!ad9361.getRxFrequency(value))
+                        return -1;
+
+                    cout << "RX LO = "
+                         << value
+                         << " Hz" << endl;
+
+                    return 0;
+                }
+
+                value = strtoull(
+                    argv[4],
+                    nullptr,
+                    0);
+
+                if (!ad9361.setRxFrequency(value))
+                {
+                    cout << "Failed to set RX frequency"
+                         << endl;
+                    return -1;
+                }
+
+                cout << "RX LO = "
+                     << value
+                     << " Hz" << endl;
+
+                return 0;
+            }
+
+
+            /*
+             * RX BANDWIDTH
+             */
+
+            if (parameter == "bandwidth")
+            {
+                uint64_t value = 0;
+
+                if (argc == 4)
+                {
+                    if (!ad9361.getRxBandwidth(value))
+                        return -1;
+
+                    cout << "RX Bandwidth = "
+                         << value
+                         << " Hz" << endl;
+
+                    return 0;
+                }
+
+                value = strtoull(
+                    argv[4],
+                    nullptr,
+                    0);
+
+                if (!ad9361.setRxBandwidth(value))
+                    return -1;
+
+                cout << "RX Bandwidth = "
+                     << value
+                     << " Hz" << endl;
+
+                return 0;
+            }
+
+
+            /*
+             * RX SAMPLE RATE
+             */
+
+            if (parameter == "sample-rate")
+            {
+                uint64_t value = 0;
+
+                if (argc == 4)
+                {
+                    if (!ad9361.getRxSampleRate(value))
+                        return -1;
+
+                    cout << "RX Sample Rate = "
+                         << value
+                         << " Hz" << endl;
+
+                    return 0;
+                }
+
+                value = strtoull(
+                    argv[4],
+                    nullptr,
+                    0);
+
+                if (!ad9361.setRxSampleRate(value))
+                    return -1;
+
+                cout << "RX Sample Rate = "
+                     << value
+                     << " Hz" << endl;
+
+                return 0;
+            }
+
+            cout << "Unknown RX parameter: "
+                 << parameter << endl;
+
+            printHelp();
+            return -1;
+        }
+
+
+        /*
+         * =====================================================
+         * RX1 / RX2
+         * =====================================================
+         */
+
+        if (subcmd == "rx1" || subcmd == "rx2")
+        {
+            int channel =
+                (subcmd == "rx1") ? 1 : 2;
+
+            if (argc < 4)
+            {
+                printHelp();
+                return -1;
+            }
+
+            string parameter(argv[3]);
+
+    /*
+    * -----------------------------------------------------
+    * RX RF PORT
+    * -----------------------------------------------------
+    */
+
+    if (parameter == "rf-port")
+    {
+        char port[128] = {};
+
+        // READ
+        // sdr_app ad9361 rx1 rf-port
+        // sdr_app ad9361 rx2 rf-port
+        if (argc == 4)
+        {
+            if (!ad9361.getRxRfPort(
+                    channel,
+                    port,
+                    sizeof(port)))
+            {
+                cout << "Failed to read RX"
+                    << channel
+                    << " RF port"
+                    << endl;
+
+                return -1;
+            }
+
+            cout << "RX" << channel
+                << " RF Port = "
+                << port
+                << endl;
+
+            return 0;
+        }
+
+        // WRITE
+        // sdr_app ad9361 rx1 rf-port A_BALANCED
+        // sdr_app ad9361 rx2 rf-port B_BALANCED
+        if (argc == 5)
+        {
+            if (!ad9361.setRxRfPort(
+                    channel,
+                    argv[4]))
+            {
+                cout << "Failed to set RX"
+                    << channel
+                    << " RF port"
+                    << endl;
+
+                return -1;
+            }
+
+            // Readback
+            if (!ad9361.getRxRfPort(
+                    channel,
+                    port,
+                    sizeof(port)))
+            {
+                cout << "RF port was set, "
+                    << "but readback failed"
+                    << endl;
+
+                return -1;
+            }
+
+            cout << "RX" << channel
+                << " RF Port = "
+                << port
+                << endl;
+
+            return 0;
+        }
+
+        cout << "Usage:" << endl;
+        cout << "  sdr_app ad9361 rx"
+            << channel
+            << " rf-port"
+            << endl;
+
+        cout << "  sdr_app ad9361 rx"
+            << channel
+            << " rf-port <port>"
+            << endl;
+
+        return -1;
+    }
+            /*
+             * RX GAIN
+             */
+
+            if (parameter == "gain")
+            {
+                double value = 0;
+
+                if (argc == 4)
+                {
+                    if (!ad9361.getRxGain(
+                            channel,
+                            value))
+                        return -1;
+
+                    cout << "RX" << channel
+                         << " Gain = "
+                         << value
+                         << " dB" << endl;
+
+                    return 0;
+                }
+
+                value = strtod(
+                    argv[4],
+                    nullptr);
+
+                if (!ad9361.setRxGain(
+                        channel,
+                        value))
+                    return -1;
+
+                cout << "RX" << channel
+                     << " Gain = "
+                     << value
+                     << " dB" << endl;
+
+                return 0;
+            }
+
+
+            /*
+             * GAIN MODE
+             */
+
+            if (parameter == "gain-mode")
+            {
+                char mode[64] = {};
+
+                if (argc == 4)
+                {
+                    if (!ad9361.getRxGainMode(
+                            channel,
+                            mode,
+                            sizeof(mode)))
+                        return -1;
+
+                    cout << "RX" << channel
+                         << " Gain Mode = "
+                         << mode;
+
+                    return 0;
+                }
+
+                if (!ad9361.setRxGainMode(
+                        channel,
+                        argv[4]))
+                    return -1;
+
+                cout << "RX" << channel
+                     << " Gain Mode = "
+                     << argv[4] << endl;
+
+                return 0;
+            }
+
+
+            /*
+             * AGC
+             *
+             * AGC is implemented through
+             * AD9361 gain_control_mode.
+             */
+
+            if (parameter == "agc")
+            {
+                if (argc < 5)
+                {
+                    cout << "Missing AGC mode"
+                         << endl;
+                    return -1;
+                }
+
+                const char* mode = argv[4];
+
+                if (!ad9361.setRxGainMode(
+                        channel,
+                        mode))
+                    return -1;
+
+                cout << "RX" << channel
+                     << " AGC = "
+                     << mode << endl;
+
+                return 0;
+            }
+
+
+            /*
+             * RSSI
+             */
+
+            if (parameter == "rssi")
+            {
+                double rssi = 0;
+
+                if (!ad9361.getRxRssi(
+                        channel,
+                        rssi))
+                    return -1;
+
+                cout << "RX" << channel
+                     << " RSSI = "
+                     << rssi
+                     << " dB" << endl;
+
+                return 0;
+            }
+
+
+            cout << "Unknown RX channel parameter: "
+                 << parameter << endl;
+
+            printHelp();
+            return -1;
+        }
+
+    /*
+    * =====================================================
+    * TX1 / TX2
+    * =====================================================
+    */
+
+    if (subcmd == "tx1" || subcmd == "tx2")
+    {
+        int channel =
+            (subcmd == "tx1") ? 1 : 2;
+
+        if (argc < 4)
+        {
+            printHelp();
+            return -1;
+        }
+
+        string parameter(argv[3]);
+
+        /*
+        * TX ATTENUATION
+        */
+
+        if (parameter == "attenuation")
+        {
+            double value = 0.0;
+
+            /*
+            * READ
+            *
+            * sdr_app ad9361 tx1 attenuation
+            * sdr_app ad9361 tx2 attenuation
+            */
+
+            if (argc == 4)
+            {
+                if (!ad9361.getTxAttenuation(
+                        channel,
+                        value))
+                {
+                    cout << "Failed to read TX"
+                        << channel
+                        << " attenuation"
+                        << endl;
+
+                    return -1;
+                }
+
+                cout << "TX" << channel
+                    << " Attenuation = "
+                    << value
+                    << " dB"
+                    << endl;
+
+                return 0;
+            }
+
+            /*
+            * WRITE
+            *
+            * sdr_app ad9361 tx1 attenuation <dB>
+            * sdr_app ad9361 tx2 attenuation <dB>
+            */
+
+            value = strtod(
+                argv[4],
+                nullptr);
+
+            if (!ad9361.setTxAttenuation(
+                    channel,
+                    value))
+            {
+                cout << "Failed to set TX"
+                    << channel
+                    << " attenuation"
+                    << endl;
+
+                return -1;
+            }
+
+            cout << "TX" << channel
+                << " Attenuation = "
+                << value
+                << " dB"
+                << endl;
+
+            return 0;
+        }
+
+         /*
+         * -----------------------------------------------------
+         * TX RF PORT
+         * -----------------------------------------------------
+         */
+
+        if (parameter == "rf-port")
+        {
+            char port[128] = {};
+
+            // READ
+            // sdr_app ad9361 tx1 rf-port
+            // sdr_app ad9361 tx2 rf-port
+
+            if (argc == 4)
+            {
+                if (!ad9361.getTxRfPort(
+                        channel,
+                        port,
+                        sizeof(port)))
+                {
+                    cout << "Failed to read TX"
+                         << channel
+                         << " RF port"
+                         << endl;
+
+                    return -1;
+                }
+
+                cout << "TX" << channel
+                     << " RF Port = "
+                     << port
+                     << endl;
+
+                return 0;
+            }
+
+            // WRITE
+            // sdr_app ad9361 tx1 rf-port A
+            // sdr_app ad9361 tx2 rf-port B
+
+            if (argc == 5)
+            {
+                if (!ad9361.setTxRfPort(
+                        channel,
+                        argv[4]))
+                {
+                    cout << "Failed to set TX"
+                         << channel
+                         << " RF port"
+                         << endl;
+
+                    return -1;
+                }
+
+                // Readback
+                if (!ad9361.getTxRfPort(
+                        channel,
+                        port,
+                        sizeof(port)))
+                {
+                    cout << "RF port was set, "
+                         << "but readback failed"
+                         << endl;
+
+                    return -1;
+                }
+
+                cout << "TX" << channel
+                     << " RF Port = "
+                     << port
+                     << endl;
+
+                return 0;
+            }
+
+            cout << "Usage:" << endl;
+            cout << "  sdr_app ad9361 tx"
+                 << channel
+                 << " rf-port"
+                 << endl;
+
+            cout << "  sdr_app ad9361 tx"
+                 << channel
+                 << " rf-port <port>"
+                 << endl;
+
+            return -1;
+        }
+
+        cout << "Unknown TX channel parameter: "
+            << parameter
+            << endl;
+
+        printHelp();
+        return -1;
+    }
+
+        /*
+         * =====================================================
+         * TX
+         * =====================================================
+         */
+
+        if (subcmd == "tx")
+        {
+            if (argc < 4)
+            {
+                printHelp();
+                return -1;
+            }
+
+            string parameter(argv[3]);
+
+
+            /*
+             * TX FREQUENCY
+             */
+
+            if (parameter == "frequency")
+            {
+                uint64_t value = 0;
+
+                if (argc == 4)
+                {
+                    if (!ad9361.getTxFrequency(value))
+                        return -1;
+
+                    cout << "TX LO = "
+                         << value
+                         << " Hz" << endl;
+
+                    return 0;
+                }
+
+                value = strtoull(
+                    argv[4],
+                    nullptr,
+                    0);
+
+                if (!ad9361.setTxFrequency(value))
+                    return -1;
+
+                cout << "TX LO = "
+                     << value
+                     << " Hz" << endl;
+
+                return 0;
+            }
+
+
+            /*
+             * TX BANDWIDTH
+             */
+
+            if (parameter == "bandwidth")
+            {
+                uint64_t value = 0;
+
+                if (argc == 4)
+                {
+                    if (!ad9361.getTxBandwidth(value))
+                        return -1;
+
+                    cout << "TX Bandwidth = "
+                         << value
+                         << " Hz" << endl;
+
+                    return 0;
+                }
+
+                value = strtoull(
+                    argv[4],
+                    nullptr,
+                    0);
+
+                if (!ad9361.setTxBandwidth(value))
+                    return -1;
+
+                cout << "TX Bandwidth = "
+                     << value
+                     << " Hz" << endl;
+
+                return 0;
+            }
+
+
+            /*
+             * TX SAMPLE RATE
+             */
+
+            if (parameter == "sample-rate")
+            {
+                uint64_t value = 0;
+
+                if (argc == 4)
+                {
+                    if (!ad9361.getTxSampleRate(value))
+                        return -1;
+
+                    cout << "TX Sample Rate = "
+                         << value
+                         << " Hz" << endl;
+
+                    return 0;
+                }
+
+                value = strtoull(
+                    argv[4],
+                    nullptr,
+                    0);
+
+                if (!ad9361.setTxSampleRate(value))
+                    return -1;
+
+                cout << "TX Sample Rate = "
+                     << value
+                     << " Hz" << endl;
+
+                return 0;
+            }
+
+
+            cout << "Unknown TX parameter: "
+                 << parameter << endl;
+
+            printHelp();
+            return -1;
+        }
+
+
+        cout << "Unknown AD9361 command: "
+             << subcmd << endl;
+
+        printHelp();
+        return -1;
+    }
+
+
 
     /*
      * =========================================================
