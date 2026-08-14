@@ -2,10 +2,13 @@
 #include <string>
 #include <cstdlib>
 #include <cstdint>
+#include <fstream>
+#include <string>
 
 #include "RegisterController.h"
 #include "dma.h"
 #include "ad9361.h"
+#include "adi_iio_capture.h"
 
 using namespace std;
 
@@ -47,6 +50,7 @@ static void printHelp()
 
     cout << "  sdr_app ad9361 rx sample-rate" << endl;
     cout << "  sdr_app ad9361 rx sample-rate <Hz>" << endl;
+    cout << "  sdr_app ad9361 rx capture <samples> [filename]" << endl;
 
     cout << endl;
 
@@ -85,6 +89,137 @@ static void printHelp()
     cout << "  sdr_app ad9361 tx1 rf-port <port>" << endl;
     cout << "  sdr_app ad9361 tx2 rf-port" << endl;
     cout << "  sdr_app ad9361 tx2 rf-port <port>" << endl;
+}
+
+static bool writeCaptureMetadata(
+    const std::string& filename,
+    size_t samples,
+    size_t bytes,
+    AD9361Controller& ad9361)
+{
+    uint64_t rxFrequency = 0;
+    uint64_t rxBandwidth = 0;
+    uint64_t rxSampleRate = 0;
+
+    double rx1Gain = 0.0;
+    double rx2Gain = 0.0;
+
+    char rx1GainMode[64] = {};
+    char rx2GainMode[64] = {};
+
+    char rx1RfPort[64] = {};
+    char rx2RfPort[64] = {};
+
+    if (!ad9361.getRxFrequency(rxFrequency))
+        return false;
+
+    if (!ad9361.getRxBandwidth(rxBandwidth))
+        return false;
+
+    if (!ad9361.getRxSampleRate(rxSampleRate))
+        return false;
+
+    if (!ad9361.getRxGain(1, rx1Gain))
+        return false;
+
+    if (!ad9361.getRxGain(2, rx2Gain))
+        return false;
+
+    if (!ad9361.getRxGainMode(
+            1,
+            rx1GainMode,
+            sizeof(rx1GainMode)))
+        return false;
+
+    if (!ad9361.getRxGainMode(
+            2,
+            rx2GainMode,
+            sizeof(rx2GainMode)))
+        return false;
+
+    if (!ad9361.getRxRfPort(
+            1,
+            rx1RfPort,
+            sizeof(rx1RfPort)))
+        return false;
+
+    if (!ad9361.getRxRfPort(
+            2,
+            rx2RfPort,
+            sizeof(rx2RfPort)))
+        return false;
+
+    std::string metadataFile = filename + ".json";
+
+    std::ofstream file(
+        metadataFile,
+        std::ios::out | std::ios::trunc);
+
+    if (!file)
+    {
+        std::cerr
+            << "Failed to create metadata file: "
+            << metadataFile
+            << std::endl;
+
+        return false;
+    }
+
+    file << "{\n";
+
+    file << "  \"samples\": "
+         << samples << ",\n";
+
+    file << "  \"bytes\": "
+         << bytes << ",\n";
+
+    file << "  \"format\": \"S12/16\",\n";
+
+    file << "  \"endianness\": \"little\",\n";
+
+    file << "  \"channels\": \"I,Q\",\n";
+
+    file << "  \"rx_frequency_hz\": "
+         << rxFrequency << ",\n";
+
+    file << "  \"rx_bandwidth_hz\": "
+         << rxBandwidth << ",\n";
+
+    file << "  \"rx_sample_rate_hz\": "
+         << rxSampleRate << ",\n";
+
+    file << "  \"rx1_gain_db\": "
+         << rx1Gain << ",\n";
+
+    file << "  \"rx1_gain_mode\": \""
+         << rx1GainMode
+         << "\",\n";
+
+    file << "  \"rx1_rf_port\": \""
+         << rx1RfPort
+         << "\",\n";
+
+    file << "  \"rx2_gain_db\": "
+         << rx2Gain << ",\n";
+
+    file << "  \"rx2_gain_mode\": \""
+         << rx2GainMode
+         << "\",\n";
+
+    file << "  \"rx2_rf_port\": \""
+         << rx2RfPort
+         << "\"\n";
+
+    file << "}\n";
+
+    file.close();
+
+    std::cout
+        << "Metadata : "
+        << metadataFile
+        << std::endl;
+
+    return true;
 }
 
 int main(int argc, char *argv[])
@@ -402,7 +537,105 @@ int main(int argc, char *argv[])
 
                 return 0;
             }
+    /*
+    * -----------------------------------------------------
+    * ADI IIO RX CAPTURE
+    * -----------------------------------------------------
+    */
 
+    if (parameter == "capture")
+    {
+        if (argc < 5)
+        {
+            cout << "Usage:" << endl;
+            cout << "  sdr_app ad9361 rx capture <samples> [filename]"
+                << endl;
+            return -1;
+        }
+
+        size_t samples =
+            strtoull(
+                argv[4],
+                nullptr,
+                0);
+
+        string filename = "/tmp/adi_rx_iq.bin";
+
+        if (argc >= 6)
+        {
+            filename = argv[5];
+        }
+
+        if (samples == 0)
+        {
+            cout << "Invalid sample count"
+                << endl;
+            return -1;
+        }
+
+            ADIIIOCapture capture;
+
+            cout << endl;
+            cout << "===================================="
+                << endl;
+            cout << " ADI IIO RX Capture"
+                << endl;
+            cout << "===================================="
+                << endl;
+
+            cout << "Samples : "
+                << samples
+                << endl;
+
+           cout << "Output  : " << filename << endl;
+
+
+            cout << endl;
+
+            if (!capture.init())
+            {
+                cout << "ADI IIO initialization failed."
+                    << endl;
+
+                return -1;
+            }
+
+            if (!capture.capture(
+                    samples,
+                    filename))
+            {
+                cout << "ADI IIO capture failed."
+                    << endl;
+
+                capture.close();
+
+                return -1;
+            }
+
+            capture.close();
+
+            cout << endl;
+
+            cout << "ADI IIO RX capture successful."
+                << endl;
+
+            cout << endl;
+
+            size_t bytes =
+                samples * sizeof(int16_t) * 2;
+
+            if (!writeCaptureMetadata(
+                    filename,
+                    samples,
+                    bytes,
+                    ad9361))
+            {
+                cout << "Warning: failed to write capture metadata."
+                    << endl;
+            }
+
+            return 0;
+        }
             cout << "Unknown RX parameter: "
                  << parameter << endl;
 

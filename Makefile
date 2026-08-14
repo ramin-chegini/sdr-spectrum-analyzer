@@ -17,7 +17,8 @@ SRC = \
 src/main.cpp \
 src/RegisterController.cpp \
 src/dma.cpp \
-src/ad9361.cpp
+src/ad9361.cpp \
+src/adi_iio_capture.cpp
 
 OUT = bin/sdr_app
 
