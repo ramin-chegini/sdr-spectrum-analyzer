@@ -15,58 +15,67 @@ using namespace std;
 static void printHelp()
 {
     cout << "Usage:" << endl;
+    cout << "  ./sdr_app" << endl;
+    cout << "  ./sdr_app --help" << endl;
+    cout << "  ./sdr_app -h" << endl;
     cout << endl;
 
     cout << "Register Controller Commands:" << endl;
-    cout << "  sdr_app enable" << endl;
-    cout << "  sdr_app disable" << endl;
-    cout << "  sdr_app reset" << endl;
-    cout << "  sdr_app mode <value>" << endl;
-    cout << "  sdr_app filter <value>" << endl;
-    cout << "  sdr_app param0 <value>" << endl;
-    cout << "  sdr_app param1 <value>" << endl;
-    cout << "  sdr_app status" << endl;
+    cout << "  ./sdr_app enable" << endl;
+    cout << "  ./sdr_app disable" << endl;
+    cout << "  ./sdr_app reset" << endl;
+    cout << "  ./sdr_app mode <value>" << endl;
+    cout << "  ./sdr_app filter <value>" << endl;
+    cout << "  ./sdr_app param0 <value>" << endl;
+    cout << "  ./sdr_app param1 <value>" << endl;
+    cout << "  ./sdr_app status" << endl;
 
     cout << endl;
 
     cout << "DMA Commands:" << endl;
-    cout << "  sdr_app dma" << endl;
-    cout << "  sdr_app dma reset" << endl;
-    cout << "  sdr_app dma capture" << endl;
+    cout << "  ./sdr_app dma" << endl;
+    cout << "  ./sdr_app dma reset" << endl;
+    cout << "  ./sdr_app dma capture" << endl;
 
     cout << endl;
 
     cout << "AD9361 Commands:" << endl;
-    cout << "  sdr_app ad9361 status" << endl;
+    cout << "  ./sdr_app ad9361 status" << endl;
 
     cout << endl;
 
     cout << "RX Commands:" << endl;
 
-    cout << endl;
+    // cout << endl;
+    // cout << "  RX Frequency:" << endl;
+    // cout << "    ./sdr_app ad9361 rx frequency" << endl;
+    // cout << "    ./sdr_app ad9361 rx frequency <Hz>" << endl;
+    // cout << "      Range: 70 MHz to 6 GHz" << endl;
+    // cout << "      Step : 1 Hz" << endl;
+
     cout << "  RX Frequency:" << endl;
-    cout << "    sdr_app ad9361 rx frequency" << endl;
-    cout << "    sdr_app ad9361 rx frequency <Hz>" << endl;
-    cout << "      Range: 70 MHz to 6 GHz" << endl;
-    cout << "      Step : 1 Hz" << endl;
+    cout << "    ./sdr_app ad9361 rx frequency" << endl;
+    cout << "    ./sdr_app ad9361 rx frequency <MHz>" << endl;
+    cout << "      Range: 70 to 6000 MHz" << endl;
+    cout << "      Step : 1 MHz" << endl;
 
     cout << endl;
     cout << "  RX Bandwidth:" << endl;
-    cout << "    sdr_app ad9361 rx bandwidth" << endl;
-    cout << "    sdr_app ad9361 rx bandwidth <Hz>" << endl;
+    cout << "    ./sdr_app ad9361 rx bandwidth" << endl;
+    cout << "    ./sdr_app ad9361 rx bandwidth <Hz>" << endl;
     cout << "      Range: 200 kHz to 56 MHz" << endl;
     cout << "      Step : 1 Hz" << endl;
 
     cout << endl;
     cout << "  RX Sample Rate:" << endl;
-    cout << "    sdr_app ad9361 rx sample-rate" << endl;
-    cout << "    sdr_app ad9361 rx sample-rate <Hz>" << endl;
+    cout << "    ./sdr_app ad9361 rx sample-rate" << endl;
+    cout << "    ./sdr_app ad9361 rx sample-rate <Hz>" << endl;
     cout << "      Range: 2,083,333 to 30,720,000 SPS" << endl;
     cout << "      Step : 1 SPS" << endl;
 
     cout << endl;
     cout << "  RX Capture:" << endl;
-    cout << "    sdr_app ad9361 rx capture <samples> [filename]" << endl;
+    cout << "    ./sdr_app ad9361 rx capture <samples> [filename]" << endl;
     cout << "      Format: I/Q, S12/16" << endl;
 
 
@@ -75,50 +84,50 @@ static void printHelp()
 
     cout << endl;
     cout << "  RX1 Gain:" << endl;
-    cout << "    sdr_app ad9361 rx1 gain" << endl;
-    cout << "    sdr_app ad9361 rx1 gain <dB>" << endl;
+    cout << "    ./sdr_app ad9361 rx1 gain" << endl;
+    cout << "    ./sdr_app ad9361 rx1 gain <dB>" << endl;
     cout << "      Range: -3 to 71 dB" << endl;
     cout << "      Step : 1 dB" << endl;
 
     cout << endl;
     cout << "  RX1 Gain Mode / AGC:" << endl;
-    cout << "    sdr_app ad9361 rx1 gain-mode" << endl;
-    cout << "    sdr_app ad9361 rx1 gain-mode <mode>" << endl;
-    cout << "    sdr_app ad9361 rx1 agc <mode>" << endl;
+    cout << "    ./sdr_app ad9361 rx1 gain-mode" << endl;
+    cout << "    ./sdr_app ad9361 rx1 gain-mode <mode>" << endl;
+    cout << "    ./sdr_app ad9361 rx1 agc <mode>" << endl;
 
     cout << endl;
     cout << "  RX1 RSSI:" << endl;
-    cout << "    sdr_app ad9361 rx1 rssi" << endl;
+    cout << "    ./sdr_app ad9361 rx1 rssi" << endl;
     cout << "      Read-only" << endl;
 
     cout << endl;
     cout << "  RX1 RF Port:" << endl;
-    cout << "    sdr_app ad9361 rx1 rf-port" << endl;
-    cout << "    sdr_app ad9361 rx1 rf-port <port>" << endl;
+    cout << "    ./sdr_app ad9361 rx1 rf-port" << endl;
+    cout << "    ./sdr_app ad9361 rx1 rf-port <port>" << endl;
 
 
     cout << endl;
     cout << "  RX2 Gain:" << endl;
-    cout << "    sdr_app ad9361 rx2 gain" << endl;
-    cout << "    sdr_app ad9361 rx2 gain <dB>" << endl;
+    cout << "    ./sdr_app ad9361 rx2 gain" << endl;
+    cout << "    ./sdr_app ad9361 rx2 gain <dB>" << endl;
     cout << "      Range: -3 to 71 dB" << endl;
     cout << "      Step : 1 dB" << endl;
 
     cout << endl;
     cout << "  RX2 Gain Mode / AGC:" << endl;
-    cout << "    sdr_app ad9361 rx2 gain-mode" << endl;
-    cout << "    sdr_app ad9361 rx2 gain-mode <mode>" << endl;
-    cout << "    sdr_app ad9361 rx2 agc <mode>" << endl;
+    cout << "    ./sdr_app ad9361 rx2 gain-mode" << endl;
+    cout << "    ./sdr_app ad9361 rx2 gain-mode <mode>" << endl;
+    cout << "    ./sdr_app ad9361 rx2 agc <mode>" << endl;
 
     cout << endl;
     cout << "  RX2 RSSI:" << endl;
-    cout << "    sdr_app ad9361 rx2 rssi" << endl;
+    cout << "    ./sdr_app ad9361 rx2 rssi" << endl;
     cout << "      Read-only" << endl;
 
     cout << endl;
     cout << "  RX2 RF Port:" << endl;
-    cout << "    sdr_app ad9361 rx2 rf-port" << endl;
-    cout << "    sdr_app ad9361 rx2 rf-port <port>" << endl;
+    cout << "    ./sdr_app ad9361 rx2 rf-port" << endl;
+    cout << "    ./sdr_app ad9361 rx2 rf-port <port>" << endl;
 
 
     cout << endl;
@@ -126,48 +135,48 @@ static void printHelp()
 
     cout << endl;
     cout << "  TX Frequency:" << endl;
-    cout << "    sdr_app ad9361 tx frequency" << endl;
-    cout << "    sdr_app ad9361 tx frequency <Hz>" << endl;
+    cout << "    ./sdr_app ad9361 tx frequency" << endl;
+    cout << "    ./sdr_app ad9361 tx frequency <Hz>" << endl;
     cout << "      Range: 46,875,001 Hz to 6 GHz" << endl;
     cout << "      Step : 1 Hz" << endl;
 
     cout << endl;
     cout << "  TX Bandwidth:" << endl;
-    cout << "    sdr_app ad9361 tx bandwidth" << endl;
-    cout << "    sdr_app ad9361 tx bandwidth <Hz>" << endl;
+    cout << "    ./sdr_app ad9361 tx bandwidth" << endl;
+    cout << "    ./sdr_app ad9361 tx bandwidth <Hz>" << endl;
     cout << "      Range: 200 kHz to 40 MHz" << endl;
     cout << "      Step : 1 Hz" << endl;
 
     cout << endl;
     cout << "  TX Sample Rate:" << endl;
-    cout << "    sdr_app ad9361 tx sample-rate" << endl;
-    cout << "    sdr_app ad9361 tx sample-rate <Hz>" << endl;
+    cout << "    ./sdr_app ad9361 tx sample-rate" << endl;
+    cout << "    ./sdr_app ad9361 tx sample-rate <Hz>" << endl;
     cout << "      Range: 2,083,333 to 30,720,000 SPS" << endl;
     cout << "      Step : 1 SPS" << endl;
 
     cout << endl;
     cout << "  TX1 Attenuation:" << endl;
-    cout << "    sdr_app ad9361 tx1 attenuation" << endl;
-    cout << "    sdr_app ad9361 tx1 attenuation <dB>" << endl;
+    cout << "    ./sdr_app ad9361 tx1 attenuation" << endl;
+    cout << "    ./sdr_app ad9361 tx1 attenuation <dB>" << endl;
     cout << "      Range: -89.75 to 0 dB" << endl;
     cout << "      Step : 0.25 dB" << endl;
 
     cout << endl;
     cout << "  TX2 Attenuation:" << endl;
-    cout << "    sdr_app ad9361 tx2 attenuation" << endl;
-    cout << "    sdr_app ad9361 tx2 attenuation <dB>" << endl;
+    cout << "    ./sdr_app ad9361 tx2 attenuation" << endl;
+    cout << "    ./sdr_app ad9361 tx2 attenuation <dB>" << endl;
     cout << "      Range: -89.75 to 0 dB" << endl;
     cout << "      Step : 0.25 dB" << endl;
 
     cout << endl;
     cout << "  TX1 RF Port:" << endl;
-    cout << "    sdr_app ad9361 tx1 rf-port" << endl;
-    cout << "    sdr_app ad9361 tx1 rf-port <port>" << endl;
+    cout << "    ./sdr_app ad9361 tx1 rf-port" << endl;
+    cout << "    ./sdr_app ad9361 tx1 rf-port <port>" << endl;
 
     cout << endl;
     cout << "  TX2 RF Port:" << endl;
-    cout << "    sdr_app ad9361 tx2 rf-port" << endl;
-    cout << "    sdr_app ad9361 tx2 rf-port <port>" << endl;
+    cout << "    ./sdr_app ad9361 tx2 rf-port" << endl;
+    cout << "    ./sdr_app ad9361 tx2 rf-port <port>" << endl;
 }
 
 static bool writeCaptureMetadata(
@@ -303,11 +312,25 @@ static bool writeCaptureMetadata(
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2)
+    // if (argc < 2)
+    // {
+    //     printHelp();
+    //     return 0;
+    // }
+
+    if (argc == 2 &&
+        (string(argv[1]) == "--help" ||
+         string(argv[1]) == "-h"))
     {
         printHelp();
         return 0;
     }
+
+    if (argc < 2)
+    {
+        printHelp();
+        return 0;
+    }    
 
     string cmd(argv[1]);
 
@@ -505,10 +528,44 @@ int main(int argc, char *argv[])
 
             string parameter(argv[3]);
 
-
             /*
              * RX FREQUENCY
              */
+
+            // if (parameter == "frequency")
+            // {
+            //     uint64_t value = 0;
+
+            //     if (argc == 4)
+            //     {
+            //         if (!ad9361.getRxFrequency(value))
+            //             return -1;
+
+            //         cout << "RX LO = "
+            //              << value
+            //              << " Hz" << endl;
+
+            //         return 0;
+            //     }
+
+            //     value = strtoull(
+            //         argv[4],
+            //         nullptr,
+            //         0);
+
+            //     if (!ad9361.setRxFrequency(value))
+            //     {
+            //         cout << "Failed to set RX frequency"
+            //              << endl;
+            //         return -1;
+            //     }
+
+            //     cout << "RX LO = "
+            //          << value
+            //          << " Hz" << endl;
+
+            //     return 0;
+            // }
 
             if (parameter == "frequency")
             {
@@ -520,31 +577,37 @@ int main(int argc, char *argv[])
                         return -1;
 
                     cout << "RX LO = "
-                         << value
-                         << " Hz" << endl;
+                        << value
+                        << " Hz" << endl;
 
                     return 0;
                 }
 
-                value = strtoull(
-                    argv[4],
-                    nullptr,
-                    0);
+                // User input is in MHz
+                uint64_t frequency_mhz =
+                    strtoull(
+                        argv[4],
+                        nullptr,
+                        0);
+
+                value = frequency_mhz * 1000000ULL;
 
                 if (!ad9361.setRxFrequency(value))
                 {
                     cout << "Failed to set RX frequency"
-                         << endl;
+                        << endl;
                     return -1;
                 }
 
                 cout << "RX LO = "
-                     << value
-                     << " Hz" << endl;
+                    << value
+                    << " Hz ("
+                    << frequency_mhz
+                    << " MHz)"
+                    << endl;
 
                 return 0;
             }
-
 
             /*
              * RX BANDWIDTH
