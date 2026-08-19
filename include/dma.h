@@ -87,9 +87,22 @@ uint32_t dma_status(void);
 void dma_print_status(void);
 
 /*==========================================================
- * DMA Buffer Debug
+ * DMA Buffer Access
  *=========================================================*/
 
-void dma_dump_buffer(uint32_t buffer_addr, uint32_t length);
+void dma_dump_buffer(
+    uint32_t buffer_addr,
+    uint32_t length
+);
+
+const uint8_t *dma_map_buffer(
+    uint32_t buffer_addr,
+    uint32_t length
+);
+
+void dma_unmap_buffer(
+    const uint8_t *buffer,
+    uint32_t length
+);
 
 #endif

@@ -900,3 +900,47 @@ void dma_dump_buffer(
         length
     );
 }
+
+const uint8_t *dma_map_buffer(
+    uint32_t buffer_addr,
+    uint32_t length
+)
+{
+    if (dma_fd < 0)
+    {
+        printf("DMA /dev/mem is not initialized.\n");
+        return nullptr;
+    }
+
+    void *mapped_buffer = mmap(
+        nullptr,
+        length,
+        PROT_READ,
+        MAP_SHARED,
+        dma_fd,
+        buffer_addr
+    );
+
+    if (mapped_buffer == MAP_FAILED)
+    {
+        perror("mmap DMA buffer");
+        return nullptr;
+    }
+
+    return static_cast<const uint8_t *>(mapped_buffer);
+}
+
+
+void dma_unmap_buffer(
+    const uint8_t *buffer,
+    uint32_t length
+)
+{
+    if (buffer == nullptr)
+        return;
+
+    munmap(
+        const_cast<uint8_t *>(buffer),
+        length
+    );
+}

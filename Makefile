@@ -18,7 +18,8 @@ src/main.cpp \
 src/RegisterController.cpp \
 src/dma.cpp \
 src/ad9361.cpp \
-src/adi_iio_capture.cpp
+src/adi_iio_capture.cpp \
+src/l2_protocol.cpp
 
 OUT = bin/sdr_app
 
