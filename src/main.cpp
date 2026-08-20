@@ -385,7 +385,7 @@ int main(int argc, char *argv[])
         string(argv[2]) == "psd")
     {
         const uint32_t dma_buffer_addr = 0x3F000000;
-        const uint32_t dma_length = 4096;
+        const uint32_t dma_length = 8192;
 
         cout << endl;
         cout << "====================================" << endl;
@@ -495,7 +495,7 @@ int main(int argc, char *argv[])
         string(argv[2]) == "iq")
     {
         const uint32_t dma_buffer_addr = 0x3F000000;
-        const uint32_t dma_length = 4096;
+        const uint32_t dma_length = 8192;
 
         cout << endl;
         cout << "====================================" << endl;
@@ -1763,7 +1763,7 @@ int main(int argc, char *argv[])
             else if (subcmd == "capture")
             {
                 const uint32_t dma_buffer_addr = 0x3F000000;
-                const uint32_t dma_length = 4096;
+                const uint32_t dma_length = 8192;
 
                 cout << endl;
                 cout << "====================================" << endl;
