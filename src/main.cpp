@@ -4,11 +4,13 @@
 #include <cstdint>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include "RegisterController.h"
 #include "dma.h"
 #include "ad9361.h"
 #include "adi_iio_capture.h"
+#include "l2_protocol.h"
 
 using namespace std;
 
@@ -177,6 +179,11 @@ static void printHelp()
     cout << "  TX2 RF Port:" << endl;
     cout << "    ./sdr_app ad9361 tx2 rf-port" << endl;
     cout << "    ./sdr_app ad9361 tx2 rf-port <port>" << endl;
+
+    cout << endl;
+    cout << "Network Commands:" << endl;
+    cout << "  ./sdr_app net psd" << endl;
+    cout << "  ./sdr_app net iq" << endl;
 }
 
 static bool writeCaptureMetadata(
@@ -333,6 +340,257 @@ int main(int argc, char *argv[])
     }    
 
     string cmd(argv[1]);
+
+    /*
+     * =====================================================
+     * Network Layer-2 Commands
+     * =====================================================
+     */
+
+    // if (argc >= 3 &&
+    //     string(argv[1]) == "net" &&
+    //     string(argv[2]) == "psd")
+    // {
+
+    //     uint8_t psd_test[L2_MAX_PAYLOAD_SIZE];
+
+    //     for (size_t i = 0; i < L2_MAX_PAYLOAD_SIZE; i++)
+    //     {
+    //         psd_test[i] = i & 0xFF;
+    //     }
+
+
+    //     l2_send_packet(
+    //         "usb0",
+    //         L2_ETHERTYPE_PSD,
+    //         L2_ID_PSD,
+    //         psd_test,
+    //         sizeof(psd_test)
+    //     );
+
+    //     // l2_send_packet(
+    //     //     "eth0",
+    //     //     L2_ETHERTYPE_PSD,
+    //     //     L2_ID_PSD,
+    //     //     psd_test,
+    //     //     sizeof(psd_test)
+    //     // );        
+
+
+    //     return 0;
+    // }
+
+    if (argc >= 3 &&
+        string(argv[1]) == "net" &&
+        string(argv[2]) == "psd")
+    {
+        const uint32_t dma_buffer_addr = 0x3F000000;
+        const uint32_t dma_length = 4096;
+
+        cout << endl;
+        cout << "====================================" << endl;
+        cout << " DMA Buffer -> USB0 PSD" << endl;
+        cout << "====================================" << endl;
+
+        cout << "DMA Buffer : 0x"
+            << hex << dma_buffer_addr << dec << endl;
+
+        cout << "Payload    : "
+            << dma_length << " bytes" << endl;
+
+
+        /*
+        * ---------------------------------------------
+        * Initialize /dev/mem
+        * ---------------------------------------------
+        */
+        if (dma_init() != 0)
+        {
+            cout << "DMA initialization failed."
+                << endl;
+
+            return -1;
+        }
+
+
+        /*
+        * ---------------------------------------------
+        * Map DMA buffer
+        * ---------------------------------------------
+        */
+        const uint8_t *dma_data =
+            dma_map_buffer(
+                dma_buffer_addr,
+                dma_length
+            );
+
+        if (dma_data == nullptr)
+        {
+            cout << "Failed to map DMA buffer."
+                << endl;
+
+            dma_close();
+            return -1;
+        }
+
+
+        /*
+        * ---------------------------------------------
+        * Send DMA buffer through Layer-2
+        * ---------------------------------------------
+        */
+        bool send_ok =
+            l2_send_packet(
+                "usb0",
+                L2_ETHERTYPE_PSD,
+                L2_ID_PSD,
+                dma_data,
+                dma_length
+            );
+
+
+        /*
+        * ---------------------------------------------
+        * Unmap DMA buffer
+        * ---------------------------------------------
+        */
+        dma_unmap_buffer(
+            dma_data,
+            dma_length
+        );
+
+
+        /*
+        * ---------------------------------------------
+        * Close /dev/mem
+        * ---------------------------------------------
+        */
+        dma_close();
+
+
+        if (!send_ok)
+        {
+            cout << "PSD packet transmission failed."
+                << endl;
+
+            return -1;
+        }
+
+
+        cout << "PSD packet transmitted successfully."
+            << endl;
+
+        return 0;
+    }
+
+
+    /*
+     * =====================================================
+     * Network Layer-2 IQ Command
+     * =====================================================
+     */
+
+    if (argc >= 3 &&
+        string(argv[1]) == "net" &&
+        string(argv[2]) == "iq")
+    {
+        const uint32_t dma_buffer_addr = 0x3F000000;
+        const uint32_t dma_length = 4096;
+
+        cout << endl;
+        cout << "====================================" << endl;
+        cout << " DMA Buffer -> USB0 IQ" << endl;
+        cout << "====================================" << endl;
+
+        cout << "DMA Buffer : 0x"
+             << hex << dma_buffer_addr << dec << endl;
+
+        cout << "Payload    : "
+             << dma_length << " bytes" << endl;
+
+        /*
+         * ---------------------------------------------
+         * Initialize DMA access
+         * ---------------------------------------------
+         */
+
+        if (dma_init() != 0)
+        {
+            cout << "DMA initialization failed."
+                 << endl;
+
+            return -1;
+        }
+
+        /*
+         * ---------------------------------------------
+         * Map DMA buffer
+         * ---------------------------------------------
+         */
+
+        const uint8_t *dma_data =
+            dma_map_buffer(
+                dma_buffer_addr,
+                dma_length);
+
+        if (dma_data == nullptr)
+        {
+            cout << "Failed to map DMA buffer."
+                 << endl;
+
+            dma_close();
+            return -1;
+        }
+
+        /*
+         * ---------------------------------------------
+         * Send IQ buffer through Layer-2
+         * ---------------------------------------------
+         */
+
+        cout << "Sending IQ buffer over USB0..."
+             << endl;
+
+        bool send_ok =
+            l2_send_packet(
+                "usb0",
+                L2_ETHERTYPE_IQ,
+                L2_ID_IQ,
+                dma_data,
+                dma_length);
+
+        /*
+         * ---------------------------------------------
+         * Unmap DMA buffer
+         * ---------------------------------------------
+         */
+
+        dma_unmap_buffer(
+            dma_data,
+            dma_length);
+
+        /*
+         * ---------------------------------------------
+         * Close DMA
+         * ---------------------------------------------
+         */
+
+        dma_close();
+
+        if (!send_ok)
+        {
+            cout << "IQ packet transmission failed."
+                 << endl;
+
+            return -1;
+        }
+
+        cout << "IQ packet transmitted successfully."
+             << endl;
+
+        return 0;
+    }
+
 
     RegisterController fpga;
 
@@ -725,11 +983,24 @@ int main(int argc, char *argv[])
             cout << "===================================="
                 << endl;
 
+            cout << "Channel : RX1" << endl;
+
             cout << "Samples : "
                 << samples
+                << " IQ samples"
                 << endl;
 
-           cout << "Output  : " << filename << endl;
+            cout << "Format  : I/Q, 16-bit" << endl;
+
+            cout << "Data    : 32-bit per IQ sample" << endl;
+
+            cout << "Bytes   : "
+                << samples * sizeof(int16_t) * 2
+                << endl;
+
+            cout << "Output  : "
+                << filename
+                << endl;
 
 
             cout << endl;
@@ -754,36 +1025,117 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            capture.close();
 
-            cout << endl;
+        // -----------------------------------------------------
+        // Send captured IQ data over USB0
+        // -----------------------------------------------------
 
-            cout << "ADI IIO RX capture successful."
+        size_t iq_bytes =
+            samples * sizeof(int16_t) * 2;
+
+        cout << endl;
+        cout << "====================================" << endl;
+        cout << " Sending IQ Capture over USB0" << endl;
+        cout << "====================================" << endl;
+
+        cout << "IQ samples : "
+            << samples
+            << endl;
+
+        cout << "IQ bytes   : "
+            << iq_bytes
+            << endl;
+
+
+        // Maximum L2 payload = 8192 bytes
+        if (iq_bytes > L2_MAX_PAYLOAD_SIZE)
+        {
+            cout << "IQ capture is larger than one L2 packet."
                 << endl;
 
-            cout << endl;
+            cout << "Maximum payload : "
+                << L2_MAX_PAYLOAD_SIZE
+                << " bytes"
+                << endl;
 
-            size_t bytes =
-                samples * sizeof(int16_t) * 2;
-
-            if (!writeCaptureMetadata(
-                    filename,
-                    samples,
-                    bytes,
-                    ad9361))
-            {
-                cout << "Warning: failed to write capture metadata."
-                    << endl;
-            }
-
-            return 0;
-        }
-            cout << "Unknown RX parameter: "
-                 << parameter << endl;
-
-            printHelp();
+            capture.close();
             return -1;
         }
+
+
+        // Open captured IQ file
+        std::ifstream iq_file(
+            filename,
+            std::ios::binary);
+
+        if (!iq_file)
+        {
+            cout << "Failed to open IQ file for Ethernet transmission."
+                << endl;
+
+            capture.close();
+            return -1;
+        }
+
+
+        // Read complete IQ data
+        std::vector<uint8_t> iq_data(iq_bytes);
+
+        iq_file.read(
+            reinterpret_cast<char*>(iq_data.data()),
+            iq_bytes);
+
+        if (iq_file.gcount() !=
+            static_cast<std::streamsize>(iq_bytes))
+        {
+            cout << "Failed to read complete IQ file."
+                << endl;
+
+            iq_file.close();
+            capture.close();
+
+            return -1;
+        }
+
+        iq_file.close();
+
+
+        // Send IQ packet
+        cout << "Sending IQ buffer over USB0..."
+            << endl;
+
+        bool send_ok =
+            l2_send_packet(
+                "usb0",
+                L2_ETHERTYPE_IQ,
+                L2_ID_IQ,
+                iq_data.data(),
+                static_cast<uint16_t>(iq_bytes));
+
+
+        // Close IIO
+        capture.close();
+
+
+        if (!send_ok)
+        {
+            cout << "IQ packet transmission failed."
+                << endl;
+
+            return -1;
+        }
+
+        cout << "IQ packet transmitted successfully."
+            << endl;
+
+                    return 0;
+                }
+                    cout << "Unknown RX parameter: "
+                        << parameter << endl;
+
+                    printHelp();
+                    return -1;
+                }
 
 
         /*
@@ -1495,6 +1847,16 @@ int main(int argc, char *argv[])
             * Report result and dump buffer
             * ---------------------------------------------
             */
+            // if (capture_ok)
+            // {
+            //     cout << "DMA Capture Completed" << endl;
+
+            //     dma_dump_buffer(
+            //         dma_buffer_addr,
+            //         dma_length
+            //     );
+            // }
+
             if (capture_ok)
             {
                 cout << "DMA Capture Completed" << endl;
@@ -1503,7 +1865,49 @@ int main(int argc, char *argv[])
                     dma_buffer_addr,
                     dma_length
                 );
-            }
+
+                cout << endl;
+                cout << "Sending DMA buffer over USB0..." << endl;
+
+                const uint8_t *dma_data =
+                    dma_map_buffer(
+                        dma_buffer_addr,
+                        dma_length
+                    );
+
+                if (dma_data == nullptr)
+                {
+                    cout << "Failed to map DMA buffer for PSD send."
+                        << endl;
+                }
+                else
+                {
+                    bool send_ok =
+                        l2_send_packet(
+                            "usb0",
+                            L2_ETHERTYPE_PSD,
+                            L2_ID_PSD,
+                            dma_data,
+                            dma_length
+                        );
+
+                    dma_unmap_buffer(
+                        dma_data,
+                        dma_length
+                    );
+
+                    if (send_ok)
+                    {
+                        cout << "PSD packet transmitted successfully."
+                            << endl;
+                    }
+                    else
+                    {
+                        cout << "PSD packet transmission failed."
+                            << endl;
+                    }
+                }
+            }            
             else
             {
                 cout << "DMA Capture Failed" << endl;
