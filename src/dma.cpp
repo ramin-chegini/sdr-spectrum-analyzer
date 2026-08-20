@@ -729,10 +729,10 @@ void dma_print_status(void)
  * This is intentionally a diagnostic function.
  *
  * Requested buffer:
- *      4096 bytes
+ *      8192 bytes
  *
  * Number of uint32 samples:
- *      1024
+ *      2048
  *
  * We print first and last samples to determine how much
  * of the buffer was actually updated by the latest capture.
