@@ -21,27 +21,42 @@ public:
 
     uint32_t readRegister(uint32_t offset);
 
-    void enableDSP(bool enable);
 
-    void resetDSP();
+    /* Control */
 
-    void setMode(uint32_t mode);
+    void setSoftReset(bool enable);
 
-    void setFilter(uint32_t filter);
+    void setPSDStart(bool enable);
 
-    void setParam0(uint32_t value);
+    void setPSDCaptureStart(bool enable);
 
-    void setParam1(uint32_t value);
+    void setMaxHoldEnable(bool enable);
 
-    uint32_t getMode();
+    void setRxChannel(uint32_t channel);
 
-    uint32_t getFilter();
 
-    uint32_t getParam0();
+    /* Configuration */
 
-    uint32_t getParam1();
+    void setBandwidth(uint32_t bandwidth);
 
-    bool isEnabled();    
+    void setPSDPerSec(uint32_t rate);
+
+    void setMaxHoldDelay(uint32_t delay);
+
+    void setLedTimer(uint32_t timer);
+
+
+    /* Readback */
+
+    uint32_t getControl();
+
+    uint32_t getBandwidth();
+
+    uint32_t getPSDPerSec();
+
+    uint32_t getMaxHoldDelay();
+
+    uint32_t getLedTimer();
 
 private:
 
