@@ -23,14 +23,36 @@ static void printHelp()
     cout << endl;
 
     cout << "Register Controller Commands:" << endl;
-    cout << "  ./sdr_app enable" << endl;
-    cout << "  ./sdr_app disable" << endl;
+
     cout << "  ./sdr_app reset" << endl;
-    cout << "  ./sdr_app mode <value>" << endl;
-    cout << "  ./sdr_app filter <value>" << endl;
-    cout << "  ./sdr_app param0 <value>" << endl;
-    cout << "  ./sdr_app param1 <value>" << endl;
+    cout << "      Generate Soft Reset pulse" << endl;
+
+    cout << "  ./sdr_app bandwidth <value>" << endl;
+    cout << "      Bandwidth Select (0-15)" << endl;
+
+    cout << "  ./sdr_app rxch <value>" << endl;
+    cout << "      RX Channel Select (0-1)" << endl;
+
+    cout << "  ./sdr_app psd-start [0|1]" << endl;
+    cout << "      PSD Start" << endl;
+
+    cout << "  ./sdr_app psd-rate <value>" << endl;
+    cout << "      PSD packets per second (0-4095)" << endl;
+
+    cout << "  ./sdr_app maxhold <0|1>" << endl;
+    cout << "      Real-Time MaxHold Enable" << endl;
+
+    cout << "  ./sdr_app maxhold-delay <value>" << endl;
+    cout << "      Real-Time MaxHold Delay (32-bit)" << endl;
+
+    cout << "  ./sdr_app psd-capture [0|1]" << endl;
+    cout << "      PSD Capture Start" << endl;
+
+    cout << "  ./sdr_app led-timer <value>" << endl;
+    cout << "      LED Timer based on FreqSys (32-bit)" << endl;
+
     cout << "  ./sdr_app status" << endl;
+    cout << "      Read Register Controller status" << endl;
 
     cout << endl;
 
@@ -1819,7 +1841,7 @@ int main(int argc, char *argv[])
                  * Enable AXI-Stream data generation
                  * ---------------------------------------------
                  */
-                fpga.enableDSP(true);
+                fpga.setPSDCaptureStart(true);
 
                 cout << endl;
                 cout << "Waiting for DMA IRQ..." << endl;
@@ -1840,7 +1862,7 @@ int main(int argc, char *argv[])
             * Stop AXI-Stream data generation
             * ---------------------------------------------
             */
-            fpga.enableDSP(false);
+            fpga.setPSDCaptureStart(false);
 
             /*
             * ---------------------------------------------
@@ -1965,123 +1987,299 @@ int main(int argc, char *argv[])
 
     /*
      * ---------------------------------------------------------
-     * ENABLE
+     * SOFT RESET
      * ---------------------------------------------------------
+     *
+     * Generates a reset pulse.
+     *
+     * Usage:
+     *   ./sdr_app reset
+     *
      */
-    if (cmd == "enable")
+    if (cmd == "reset")
     {
-        fpga.enableDSP(true);
-        cout << "DSP Enabled" << endl;
+        fpga.setSoftReset(true);
+
+        cout << "Soft Reset pulse generated." << endl;
     }
 
     /*
      * ---------------------------------------------------------
-     * DISABLE
+     * BANDWIDTH
      * ---------------------------------------------------------
+     *
+     * 4-bit value
+     *
+     * Usage:
+     *   ./sdr_app bandwidth <value>
+     *
      */
-    else if (cmd == "disable")
-    {
-        fpga.enableDSP(false);
-        cout << "DSP Disabled" << endl;
-    }
-
-    /*
-     * ---------------------------------------------------------
-     * RESET
-     * ---------------------------------------------------------
-     */
-    else if (cmd == "reset")
-    {
-        fpga.resetDSP();
-        cout << "DSP Reset Done" << endl;
-    }
-
-    /*
-     * ---------------------------------------------------------
-     * MODE
-     * ---------------------------------------------------------
-     */
-    else if (cmd == "mode")
+    else if (cmd == "bandwidth")
     {
         if (argc < 3)
         {
-            cout << "Missing mode value" << endl;
-            return -1;
-        }
-
-        uint32_t mode =
-            strtoul(argv[2], nullptr, 0);
-
-        fpga.setMode(mode);
-
-        cout << "Mode = "
-             << mode << endl;
-    }
-
-    /*
-     * ---------------------------------------------------------
-     * FILTER
-     * ---------------------------------------------------------
-     */
-    else if (cmd == "filter")
-    {
-        if (argc < 3)
-        {
-            cout << "Missing filter value" << endl;
-            return -1;
-        }
-
-        uint32_t filter =
-            strtoul(argv[2], nullptr, 0);
-
-        fpga.setFilter(filter);
-
-        cout << "Filter = "
-             << filter << endl;
-    }
-
-    /*
-     * ---------------------------------------------------------
-     * PARAM0
-     * ---------------------------------------------------------
-     */
-    else if (cmd == "param0")
-    {
-        if (argc < 3)
-        {
-            cout << "Missing Param0 value" << endl;
+            cout << "Missing bandwidth value" << endl;
             return -1;
         }
 
         uint32_t value =
             strtoul(argv[2], nullptr, 0);
 
-        fpga.setParam0(value);
+        if (value > 0xF)
+        {
+            cout << "Invalid bandwidth value." << endl;
+            cout << "Range: 0 to 15" << endl;
+            return -1;
+        }
 
-        cout << "Param0 = 0x"
-             << hex << value << dec << endl;
+        fpga.setBandwidth(value);
+
+        cout << "Bandwidth Select = "
+             << value
+             << endl;
     }
 
     /*
      * ---------------------------------------------------------
-     * PARAM1
+     * RX CHANNEL
      * ---------------------------------------------------------
+     *
+     * 1-bit value
+     *
+     * Usage:
+     *   ./sdr_app rxch 0
+     *   ./sdr_app rxch 1
+     *
      */
-    else if (cmd == "param1")
+    else if (cmd == "rxch")
     {
         if (argc < 3)
         {
-            cout << "Missing Param1 value" << endl;
+            cout << "Missing RX channel value" << endl;
             return -1;
         }
 
         uint32_t value =
             strtoul(argv[2], nullptr, 0);
 
-        fpga.setParam1(value);
+        if (value > 1)
+        {
+            cout << "Invalid RX channel value." << endl;
+            cout << "Allowed values: 0 or 1" << endl;
+            return -1;
+        }
 
-        cout << "Param1 = 0x"
-             << hex << value << dec << endl;
+        fpga.setRxChannel(value);
+
+        cout << "RX Channel Select = "
+             << value
+             << endl;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * PSD START
+     * ---------------------------------------------------------
+     *
+     * Usage:
+     *   ./sdr_app psd-start
+     *   ./sdr_app psd-start 1
+     *   ./sdr_app psd-start 0
+     *
+     */
+    else if (cmd == "psd-start")
+    {
+        uint32_t value = 1;
+
+        if (argc >= 3)
+        {
+            value =
+                strtoul(argv[2], nullptr, 0);
+        }
+
+        if (value > 1)
+        {
+            cout << "Invalid PSD start value." << endl;
+            cout << "Allowed values: 0 or 1" << endl;
+            return -1;
+        }
+
+        fpga.setPSDStart(value);
+
+        cout << "PSD Start = "
+             << value
+             << endl;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * PSD RATE
+     * ---------------------------------------------------------
+     *
+     * 12-bit value
+     *
+     * Usage:
+     *   ./sdr_app psd-rate <value>
+     *
+     * Range:
+     *   0 - 4095
+     *
+     */
+    else if (cmd == "psd-rate")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing PSD rate value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        if (value > 0xFFF)
+        {
+            cout << "Invalid PSD rate value." << endl;
+            cout << "Range: 0 to 4095" << endl;
+            return -1;
+        }
+
+        fpga.setPSDPerSec(value);
+
+        cout << "PSD Per Sec = "
+             << value
+             << endl;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * REALTIME MAX HOLD ENABLE
+     * ---------------------------------------------------------
+     *
+     * Usage:
+     *   ./sdr_app maxhold 0
+     *   ./sdr_app maxhold 1
+     *
+     */
+    else if (cmd == "maxhold")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing MaxHold enable value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        if (value > 1)
+        {
+            cout << "Invalid MaxHold value." << endl;
+            cout << "Allowed values: 0 or 1" << endl;
+            return -1;
+        }
+
+        fpga.setMaxHoldEnable(value);
+
+        cout << "RealTime MaxHold Enable = "
+             << value
+             << endl;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * REALTIME MAX HOLD DELAY
+     * ---------------------------------------------------------
+     *
+     * 32-bit value
+     *
+     * Usage:
+     *   ./sdr_app maxhold-delay <value>
+     *
+     */
+    else if (cmd == "maxhold-delay")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing MaxHold delay value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        fpga.setMaxHoldDelay(value);
+
+        cout << "RealTime MaxHold Delay = 0x"
+             << hex
+             << value
+             << dec
+             << endl;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * PSD CAPTURE START
+     * ---------------------------------------------------------
+     *
+     * Usage:
+     *   ./sdr_app psd-capture
+     *   ./sdr_app psd-capture 1
+     *   ./sdr_app psd-capture 0
+     *
+     */
+    else if (cmd == "psd-capture")
+    {
+        uint32_t value = 1;
+
+        if (argc >= 3)
+        {
+            value =
+                strtoul(argv[2], nullptr, 0);
+        }
+
+        if (value > 1)
+        {
+            cout << "Invalid PSD capture value." << endl;
+            cout << "Allowed values: 0 or 1" << endl;
+            return -1;
+        }
+
+        fpga.setPSDCaptureStart(value);
+
+        cout << "PSD Capture Start = "
+             << value
+             << endl;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * LED TIMER
+     * ---------------------------------------------------------
+     *
+     * 32-bit value
+     *
+     * Usage:
+     *   ./sdr_app led-timer <value>
+     *
+     */
+    else if (cmd == "led-timer")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing LED timer value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        fpga.setLedTimer(value);
+
+        cout << "LED Timer = 0x"
+             << hex
+             << value
+             << dec
+             << endl;
     }
 
     /*
@@ -2096,25 +2294,35 @@ int main(int argc, char *argv[])
         cout << " Register Controller Status" << endl;
         cout << "====================================" << endl;
 
-        cout << "DSP Enable : "
-             << (fpga.isEnabled() ? "ON" : "OFF")
+        cout << "CONTROL      : 0x"
+             << hex
+             << fpga.getControl()
+             << dec
              << endl;
 
-        cout << "Mode       : "
-             << fpga.getMode()
+        cout << "BANDWIDTH    : 0x"
+             << hex
+             << fpga.getBandwidth()
+             << dec
              << endl;
 
-        cout << "Filter     : "
-             << fpga.getFilter()
+        cout << "PSD RATE     : 0x"
+             << hex
+             << fpga.getPSDPerSec()
+             << dec
              << endl;
 
-        cout << "Param0     : 0x"
-             << hex << fpga.getParam0()
-             << dec << endl;
+        cout << "MAXHOLD DELAY: 0x"
+             << hex
+             << fpga.getMaxHoldDelay()
+             << dec
+             << endl;
 
-        cout << "Param1     : 0x"
-             << hex << fpga.getParam1()
-             << dec << endl;
+        cout << "LED TIMER    : 0x"
+             << hex
+             << fpga.getLedTimer()
+             << dec
+             << endl;
     }
 
     /*
@@ -2125,12 +2333,18 @@ int main(int argc, char *argv[])
     else
     {
         cout << "Unknown command: "
-             << cmd << endl << endl;
+             << cmd
+             << endl
+             << endl;
 
         printHelp();
 
+        fpga.close();
+
         return -1;
     }
+
+    fpga.close();
 
     return 0;
 }

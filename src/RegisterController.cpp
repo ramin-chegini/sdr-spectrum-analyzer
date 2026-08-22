@@ -79,84 +79,139 @@ uint32_t RegisterController::readRegister(uint32_t offset)
 {
     return regs[offset/4];
 }
-void RegisterController::enableDSP(bool enable)
+
+// void RegisterController::setSoftReset(bool enable)
+// {
+//     uint32_t reg = readRegister(REG_CONTROL);
+
+//     if (enable)
+//         reg |= CTRL_SOFT_RESET;
+//     else
+//         reg &= ~CTRL_SOFT_RESET;
+
+//     writeRegister(REG_CONTROL, reg);
+// }
+
+void RegisterController::setSoftReset(bool enable)
 {
+    if (!enable)
+        return;
 
     uint32_t reg = readRegister(REG_CONTROL);
 
-    if(enable)
-        reg |= CTRL_ENABLE;
+    // Generate reset pulse
+    reg |= CTRL_SOFT_RESET;
+    writeRegister(REG_CONTROL, reg);
+
+    // Clear reset bit immediately
+    reg &= ~CTRL_SOFT_RESET;
+    writeRegister(REG_CONTROL, reg);
+}
+
+void RegisterController::setPSDStart(bool enable)
+{
+    uint32_t reg = readRegister(REG_CONTROL);
+
+    if (enable)
+        reg |= CTRL_PSD_START;
     else
-        reg &= ~CTRL_ENABLE;
+        reg &= ~CTRL_PSD_START;
 
-    writeRegister(REG_CONTROL,
-                  reg);
-
+    writeRegister(REG_CONTROL, reg);
 }
-void RegisterController::resetDSP()
+
+void RegisterController::setPSDCaptureStart(bool enable)
 {
-    uint32_t reg;
+    uint32_t reg = readRegister(REG_CONTROL);
 
-    reg = readRegister(REG_CONTROL);
+    if (enable)
+        reg |= CTRL_PSD_CAPTURE_START;
+    else
+        reg &= ~CTRL_PSD_CAPTURE_START;
 
-    reg |= CTRL_RESET;
-
-    writeRegister(REG_CONTROL,
-                  reg);
-
-    reg &= ~CTRL_RESET;
-
-    writeRegister(REG_CONTROL,
-                  reg);
+    writeRegister(REG_CONTROL, reg);
 }
 
-void RegisterController::setMode(uint32_t mode)
+void RegisterController::setMaxHoldEnable(bool enable)
 {
-    writeRegister(REG_MODE,
-                  mode);
+    uint32_t reg = readRegister(REG_CONTROL);
+
+    if (enable)
+        reg |= CTRL_MAXHOLD_ENABLE;
+    else
+        reg &= ~CTRL_MAXHOLD_ENABLE;
+
+    writeRegister(REG_CONTROL, reg);
 }
 
-void RegisterController::setFilter(uint32_t filter)
+void RegisterController::setRxChannel(uint32_t channel)
 {
-    writeRegister(REG_FILTER,
-                  filter);
+    uint32_t reg = readRegister(REG_CONTROL);
+
+    if (channel)
+        reg |= CTRL_RXCH_SELECT;
+    else
+        reg &= ~CTRL_RXCH_SELECT;
+
+    writeRegister(REG_CONTROL, reg);
 }
 
-void RegisterController::setParam0(uint32_t value)
+void RegisterController::setBandwidth(uint32_t bandwidth)
 {
-    writeRegister(REG_PARAM0,
-                  value);
-}
-void RegisterController::setParam1(uint32_t value)
-{
-    writeRegister(REG_PARAM1,
-                  value);
+    uint32_t reg = readRegister(REG_BANDWIDTH);
+
+    reg &= ~BANDWIDTH_MASK;
+    reg |= (bandwidth & BANDWIDTH_MASK);
+
+    writeRegister(REG_BANDWIDTH, reg);
 }
 
-uint32_t RegisterController::getMode()
+void RegisterController::setPSDPerSec(uint32_t rate)
 {
-    return readRegister(REG_MODE);
+    uint32_t reg = readRegister(REG_PSD_RATE);
+
+    reg &= ~PSD_RATE_MASK;
+    reg |= (rate & PSD_RATE_MASK);
+
+    writeRegister(REG_PSD_RATE, reg);
 }
 
-uint32_t RegisterController::getFilter()
+void RegisterController::setMaxHoldDelay(uint32_t delay)
 {
-    return readRegister(REG_FILTER);
+    writeRegister(REG_MAXHOLD_DELAY, delay);
 }
 
-uint32_t RegisterController::getParam0()
+void RegisterController::setLedTimer(uint32_t timer)
 {
-    return readRegister(REG_PARAM0);
+    writeRegister(REG_LED_TIMER, timer);
 }
 
-uint32_t RegisterController::getParam1()
+uint32_t RegisterController::getControl()
 {
-    return readRegister(REG_PARAM1);
+    return readRegister(REG_CONTROL);
 }
 
-bool RegisterController::isEnabled()
+uint32_t RegisterController::getBandwidth()
 {
-    return (readRegister(REG_CONTROL) & CTRL_ENABLE) != 0;
+    return readRegister(REG_BANDWIDTH);
 }
+
+uint32_t RegisterController::getPSDPerSec()
+{
+    return readRegister(REG_PSD_RATE);
+}
+
+uint32_t RegisterController::getMaxHoldDelay()
+{
+    return readRegister(REG_MAXHOLD_DELAY);
+}
+
+uint32_t RegisterController::getLedTimer()
+{
+    return readRegister(REG_LED_TIMER);
+}
+
+
 
 
 
