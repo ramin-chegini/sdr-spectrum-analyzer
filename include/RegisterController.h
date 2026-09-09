@@ -26,25 +26,39 @@ public:
 
     void setSoftReset(bool enable);
 
-    void setPSDStart(bool enable);
+    void setSoftStart(bool enable);
 
-    void setPSDCaptureStart(bool enable);
+    void setSendPacket(bool enable);
 
-    void setMaxHoldEnable(bool enable);
+    void setModEnable(bool enable);
 
-    void setRxChannel(uint32_t channel);
+    void setSquelchEnable(bool enable);
 
+    void setMGC2On(bool enable);
+
+    void setAGC1On(bool enable);
+
+    void setAGC2On(bool enable);
+
+    void setAmpOK(bool enable);
 
     /* Configuration */
 
     void setBandwidth(uint32_t bandwidth);
 
-    void setPSDPerSec(uint32_t rate);
-
-    void setMaxHoldDelay(uint32_t delay);
+    void setModeSelect(uint32_t mode);
 
     void setLedTimer(uint32_t timer);
 
+    void setMsgValue(uint32_t value);
+
+    void setACoeff1(uint32_t value);
+
+    void setACoeff2(uint32_t value);
+
+    void setRef1(uint32_t value);
+
+    void setRef2(uint32_t value);
 
     /* Readback */
 
@@ -52,11 +66,17 @@ public:
 
     uint32_t getBandwidth();
 
-    uint32_t getPSDPerSec();
-
-    uint32_t getMaxHoldDelay();
+    uint32_t getModeSelect();
 
     uint32_t getLedTimer();
+
+    uint32_t getMsgValue();
+
+    uint32_t getCoefficients();
+
+    uint32_t getRef1();
+
+    uint32_t getRef2();
 
 private:
 
