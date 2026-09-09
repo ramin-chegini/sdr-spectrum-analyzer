@@ -5,12 +5,16 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <chrono>
+#include <thread>
+#include <iomanip>
 
 #include "RegisterController.h"
 #include "dma.h"
 #include "ad9361.h"
 #include "adi_iio_capture.h"
 #include "l2_protocol.h"
+#include "CommandDispatcher.h"
 
 using namespace std;
 
@@ -24,35 +28,82 @@ static void printHelp()
 
     cout << "Register Controller Commands:" << endl;
 
-    cout << "  ./sdr_app reset" << endl;
-    cout << "      Generate Soft Reset pulse" << endl;
+    cout << endl;
+    cout << "  CONTROL:" << endl;
 
-    cout << "  ./sdr_app bandwidth <value>" << endl;
-    cout << "      Bandwidth Select (0-15)" << endl;
+    cout << "    ./sdr_app reset" << endl;
+    cout << "        Generate Soft Reset pulse" << endl;
 
-    cout << "  ./sdr_app rxch <value>" << endl;
-    cout << "      RX Channel Select (0-1)" << endl;
+    cout << "    ./sdr_app soft-start <0|1>" << endl;
+    cout << "        Soft Start" << endl;
 
-    cout << "  ./sdr_app psd-start [0|1]" << endl;
-    cout << "      PSD Start" << endl;
+    cout << "    ./sdr_app send-packet <0|1>" << endl;
+    cout << "        Send Packet Enable" << endl;
 
-    cout << "  ./sdr_app psd-rate <value>" << endl;
-    cout << "      PSD packets per second (0-4095)" << endl;
+    cout << "    ./sdr_app mod-enable <0|1>" << endl;
+    cout << "        Modulation Enable" << endl;
 
-    cout << "  ./sdr_app maxhold <0|1>" << endl;
-    cout << "      Real-Time MaxHold Enable" << endl;
+    cout << "    ./sdr_app squelch-enable <0|1>" << endl;
+    cout << "        Squelch Enable" << endl;
 
-    cout << "  ./sdr_app maxhold-delay <value>" << endl;
-    cout << "      Real-Time MaxHold Delay (32-bit)" << endl;
+    cout << "    ./sdr_app mgc2-on <0|1>" << endl;
+    cout << "        MGC2 Enable" << endl;
 
-    cout << "  ./sdr_app psd-capture [0|1]" << endl;
-    cout << "      PSD Capture Start" << endl;
+    cout << "    ./sdr_app agc1-on <0|1>" << endl;
+    cout << "        AGC1 Enable" << endl;
 
-    cout << "  ./sdr_app led-timer <value>" << endl;
-    cout << "      LED Timer based on FreqSys (32-bit)" << endl;
+    cout << "    ./sdr_app agc2-on <0|1>" << endl;
+    cout << "        AGC2 Enable" << endl;
 
-    cout << "  ./sdr_app status" << endl;
-    cout << "      Read Register Controller status" << endl;
+    cout << "    ./sdr_app amp-ok <0|1>" << endl;
+    cout << "        Amplifier OK" << endl;
+
+
+    cout << endl;
+    cout << "  CONFIGURATION:" << endl;
+
+    cout << "    ./sdr_app bandwidth <value>" << endl;
+    cout << "        Bandwidth Select:" << endl;
+    cout << "          0  = WB (AD9361 Filter / FPGA FIR Bypass, Dec=2)" << endl;
+    cout << "          1  = 200 kHz => Dec=8" << endl;
+    cout << "          2  = 150 kHz => Dec=8" << endl;
+    cout << "          3  = 60 kHz  => Dec=16" << endl;
+    cout << "          4  = 30 kHz  => Dec=32" << endl;
+    cout << "          5  = 15 kHz  => Dec=64" << endl;
+    cout << "          6  = 12 kHz  => Dec=64" << endl;
+    cout << "          7  = 7.5 kHz => Dec=128" << endl;
+    cout << "          8  = 5 kHz   => Dec=256" << endl;
+    cout << "          9  = 3 kHz   => Dec=512" << endl;
+    cout << "          10 = 1.2 kHz => Dec=1024" << endl;
+    cout << "          11 = 0.6 kHz => Dec=2048" << endl;
+
+    cout << "    ./sdr_app mode-select <value>" << endl;
+    cout << "        Mode Select (0-255)" << endl;
+
+    cout << "    ./sdr_app led-timer <value>" << endl;
+    cout << "        LED Timer based on FreqSys (32-bit)" << endl;
+
+    cout << "    ./sdr_app msg-value <value>" << endl;
+    cout << "        Message Value (32-bit)" << endl;
+
+    cout << "    ./sdr_app a-coeff1 <value>" << endl;
+    cout << "        A Coefficient 1 (8-bit)" << endl;
+
+    cout << "    ./sdr_app a-coeff2 <value>" << endl;
+    cout << "        A Coefficient 2 (8-bit)" << endl;
+
+    cout << "    ./sdr_app ref1 <value>" << endl;
+    cout << "        Reference 1 (24-bit)" << endl;
+
+    cout << "    ./sdr_app ref2 <value>" << endl;
+    cout << "        Reference 2 (24-bit)" << endl;
+
+
+    cout << endl;
+    cout << "  STATUS:" << endl;
+
+    cout << "    ./sdr_app status" << endl;
+    cout << "        Read Register Controller status" << endl;
 
     cout << endl;
 
@@ -60,10 +111,13 @@ static void printHelp()
     cout << "  ./sdr_app dma" << endl;
     cout << "  ./sdr_app dma reset" << endl;
     cout << "  ./sdr_app dma capture" << endl;
+    cout << "  ./sdr_app dma audio" << endl;    
 
     cout << endl;
 
     cout << "AD9361 Commands:" << endl;
+    cout << "  ./sdr_app startup" << endl;
+    cout << "      Initialize SDR startup configuration" << endl;
     cout << "  ./sdr_app ad9361 status" << endl;
 
     cout << endl;
@@ -94,7 +148,7 @@ static void printHelp()
     cout << "  RX Sample Rate:" << endl;
     cout << "    ./sdr_app ad9361 rx sample-rate" << endl;
     cout << "    ./sdr_app ad9361 rx sample-rate <Hz>" << endl;
-    cout << "      Range: 2,083,333 to 30,720,000 SPS" << endl;
+    cout << "      Range: 2,083,340 to 30,720,000 SPS" << endl;
     cout << "      Step : 1 SPS" << endl;
 
     cout << endl;
@@ -175,7 +229,7 @@ static void printHelp()
     cout << "  TX Sample Rate:" << endl;
     cout << "    ./sdr_app ad9361 tx sample-rate" << endl;
     cout << "    ./sdr_app ad9361 tx sample-rate <Hz>" << endl;
-    cout << "      Range: 2,083,333 to 30,720,000 SPS" << endl;
+    cout << "      Range: 2,083,340 to 30,720,000 SPS" << endl;
     cout << "      Step : 1 SPS" << endl;
 
     cout << endl;
@@ -203,9 +257,12 @@ static void printHelp()
     cout << "    ./sdr_app ad9361 tx2 rf-port <port>" << endl;
 
     cout << endl;
+
     cout << "Network Commands:" << endl;
     cout << "  ./sdr_app net psd" << endl;
     cout << "  ./sdr_app net iq" << endl;
+    cout << "  ./sdr_app net rx" << endl;
+    cout << "      Receive configuration packet from GUI" << endl;
 }
 
 static bool writeCaptureMetadata(
@@ -339,8 +396,262 @@ static bool writeCaptureMetadata(
     return true;
 }
 
+static bool initializeSDR()
+{
+    AD9361Controller ad9361;
+    RegisterController fpga;
+
+    if (!ad9361.init())
+    {
+        cout << "AD9361 initialization failed."
+             << endl;
+
+        return false;
+    }
+
+    /*
+     * ---------------------------------------------
+     * FPGA Register Controller
+     * ---------------------------------------------
+     */
+    if (!fpga.open())
+    {
+        cout << "FPGA Register Controller Open Failed"
+             << endl;
+
+        return false;
+    }
+
+    /*
+     * Addr 11 -> Mode Select = 3
+     */
+    fpga.setModeSelect(3);
+    /*
+    * ---------------------------------------------
+    * Enable Audio Modulator
+    *
+    * Register Addr 4
+    * ---------------------------------------------
+    */
+    fpga.setModEnable(true); 
+
+    const uint64_t DEFAULT_RX_SAMPLE_RATE = 2083340ULL;
+    const uint64_t DEFAULT_RX_BANDWIDTH  = 200000ULL;
+
+    if (!ad9361.setRxSampleRate(DEFAULT_RX_SAMPLE_RATE))
+    {
+        cout << "Failed to set default RX Sample Rate."
+             << endl;
+
+        return false;
+    }
+
+    if (!ad9361.setRxBandwidth(DEFAULT_RX_BANDWIDTH))
+    {
+        cout << "Failed to set default RX Bandwidth."
+             << endl;
+
+        return false;
+    }
+
+    cout << endl;
+    cout << "====================================" << endl;
+    cout << "       SDR Startup Configuration" << endl;
+    cout << "====================================" << endl;
+
+    cout << "Mode Select    : 3" << endl;
+
+    cout << "RX Sample Rate : "
+         << DEFAULT_RX_SAMPLE_RATE
+         << " Hz" << endl;
+
+    cout << "RX Bandwidth   : "
+         << DEFAULT_RX_BANDWIDTH
+         << " Hz" << endl;
+
+    cout << "Startup configuration completed."
+         << endl;
+
+    return true;
+}
+
+/*
+ * =========================================================
+ * MAIN SDR APPLICATION
+ * =========================================================
+ *
+ * Default mode:
+ *
+ *     ./sdr_app
+ *
+ * 1. Initialize AD9361
+ * 2. Set RX Sample Rate
+ * 3. Set RX Bandwidth
+ * 4. Start continuous L2 RX listener
+ */
+
+static int runMainApplication()
+{
+    
+    /*
+     * =====================================================
+     * SDR STARTUP
+     * =====================================================
+     */
+
+    if (!initializeSDR())
+    {
+        cout << "SDR startup failed."
+             << endl;
+
+        return -1;
+    }
+
+
+    /*
+     * =====================================================
+     * DEFAULT FPGA CONFIGURATION
+     * =====================================================
+     */
+
+    RegisterController regCtrl;
+
+    if (!regCtrl.open())
+    {
+        cout << "Failed to open FPGA Register Controller."
+             << endl;
+
+        return -1;
+    }
+
+    const uint32_t DEFAULT_LED_TIMER = 2083340;
+
+    regCtrl.setLedTimer(DEFAULT_LED_TIMER);
+
+    cout << "Default LED Timer : "
+         << DEFAULT_LED_TIMER
+         << " Hz"
+         << endl;
+
+    regCtrl.close();
+
+
+    /*
+     * =====================================================
+     * L2 RX Listener
+     * =====================================================
+     */
+
+    L2RxListener listener;
+
+    if (!listener.open(
+            "usb0",
+            L2_RX_PACKETLEN))
+    {
+        cout << "Failed to open L2 RX listener."
+             << endl;
+
+        return -1;
+    }
+
+
+    cout << endl;
+    cout << "====================================" << endl;
+    cout << " L2 RX - Configuration Listener" << endl;
+    cout << "====================================" << endl;
+
+    cout << "Interface      : usb0" << endl;
+
+    cout << "Packet Length  : 0x"
+         << hex
+         << uppercase
+         << setw(4)
+         << setfill('0')
+         << L2_RX_PACKETLEN
+         << dec
+         << setfill(' ')
+         << endl;
+
+    cout << "Frame Size     : "
+         << L2_RX_FRAME_SIZE
+         << " bytes"
+         << endl;
+
+    cout << endl;
+    cout << "Continuous RX mode enabled." << endl;
+    cout << "Waiting for packets from GUI..."
+         << endl;
+
+
+    /*
+     * =====================================================
+     * Continuous GUI Command Loop
+     * =====================================================
+     */
+
+    while (true)
+    {
+        uint16_t fpga_id = 0;
+        uint8_t reg_addr = 0;
+        uint8_t data[L2_RX_DATA_SIZE] = {};
+
+
+        bool receive_ok =
+            listener.receive(
+                &fpga_id,
+                &reg_addr,
+                data);
+
+
+        if (!receive_ok)
+        {
+            cout << "L2 RX failed."
+                 << endl;
+
+            break;
+        }
+
+
+        /*
+         * =================================================
+         * Apply GUI Register Command
+         * =================================================
+         */
+
+        if (!applyRegisterCommand(
+                fpga_id,
+                reg_addr,
+                data))
+        {
+            cout << "Failed to apply GUI register command."
+                 << endl;
+
+            continue;
+        }
+
+
+        cout << endl;
+        cout << "GUI command processed successfully."
+             << endl;
+
+        cout << endl;
+        cout << "Waiting for next GUI command..."
+             << endl;
+    }
+
+
+    listener.close();
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
+
+    DmaContext psd_dma{};
+    DmaContext audio_dma{};
+
+
     // if (argc < 2)
     // {
     //     printHelp();
@@ -357,8 +668,9 @@ int main(int argc, char *argv[])
 
     if (argc < 2)
     {
-        printHelp();
-        return 0;
+        //printHelp();
+        return runMainApplication();
+        //return 0;
     }    
 
     string cmd(argv[1]);
@@ -423,20 +735,6 @@ int main(int argc, char *argv[])
 
         /*
         * ---------------------------------------------
-        * Initialize /dev/mem
-        * ---------------------------------------------
-        */
-        if (dma_init() != 0)
-        {
-            cout << "DMA initialization failed."
-                << endl;
-
-            return -1;
-        }
-
-
-        /*
-        * ---------------------------------------------
         * Map DMA buffer
         * ---------------------------------------------
         */
@@ -451,7 +749,6 @@ int main(int argc, char *argv[])
             cout << "Failed to map DMA buffer."
                 << endl;
 
-            dma_close();
             return -1;
         }
 
@@ -487,7 +784,7 @@ int main(int argc, char *argv[])
         * Close /dev/mem
         * ---------------------------------------------
         */
-        dma_close();
+        //dma_close();
 
 
         if (!send_ok)
@@ -536,13 +833,13 @@ int main(int argc, char *argv[])
          * ---------------------------------------------
          */
 
-        if (dma_init() != 0)
-        {
-            cout << "DMA initialization failed."
-                 << endl;
+        // if (dma_init() != 0)
+        // {
+        //     cout << "DMA initialization failed."
+        //          << endl;
 
-            return -1;
-        }
+        //     return -1;
+        // }
 
         /*
          * ---------------------------------------------
@@ -553,14 +850,14 @@ int main(int argc, char *argv[])
         const uint8_t *dma_data =
             dma_map_buffer(
                 dma_buffer_addr,
-                dma_length);
+                dma_length
+            );
 
         if (dma_data == nullptr)
         {
             cout << "Failed to map DMA buffer."
-                 << endl;
+                << endl;
 
-            dma_close();
             return -1;
         }
 
@@ -597,7 +894,7 @@ int main(int argc, char *argv[])
          * ---------------------------------------------
          */
 
-        dma_close();
+        //dma_close();
 
         if (!send_ok)
         {
@@ -613,8 +910,259 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    /*
+    * =====================================================
+    * Network Layer-2 RX Command
+    * =====================================================
+    */
+
+    if (argc >= 3 &&
+        string(argv[1]) == "net" &&
+        string(argv[2]) == "rx")
+    {
+        cout << endl;
+        cout << "====================================" << endl;
+        cout << " L2 RX - Configuration Packet" << endl;
+        cout << "====================================" << endl;
+
+        cout << "Interface      : usb0" << endl;
+        cout << "Expected Type  : 0x"
+            << hex
+            << uppercase
+            << L2_RX_PACKETLEN
+            << dec
+            << endl;
+
+        cout << endl;
+        cout << "Continuous RX mode enabled." << endl;
+        cout << "Waiting for packets from GUI..." << endl;
+
+
+        /*
+        * =====================================================
+        * Continuous L2 RX Loop
+        * =====================================================
+        */
+
+        while (true)
+        {
+            uint16_t fpga_id = 0;
+            uint8_t reg_addr = 0;
+            uint8_t data[L2_RX_DATA_SIZE] = {};
+
+            bool receive_ok =
+                l2_receive_packet(
+                    "usb0",
+                    L2_RX_PACKETLEN,
+                    &fpga_id,
+                    &reg_addr,
+                    data);
+
+            if (!receive_ok)
+            {
+                cout << "L2 RX failed." << endl;
+                return -1;
+            }
+
+
+            /*
+            * =================================================
+            * Apply GUI Register Command
+            * =================================================
+            */
+
+            if (!applyRegisterCommand(
+                    fpga_id,
+                    reg_addr,
+                    data))
+            {
+                cout << "Failed to apply GUI register command."
+                    << endl;
+
+                continue;
+            }
+
+            cout << endl;
+            cout << "GUI command processed successfully."
+                << endl;
+
+            cout << endl;
+            cout << "Waiting for next GUI command..."
+                << endl;
+        }
+
+        return 0;
+    }
+
+    /*
+    * =====================================================
+    * Network Layer-2 RX Command
+    * =====================================================
+    */
+
+    // if (argc >= 3 &&
+    //     string(argv[1]) == "net" &&
+    //     string(argv[2]) == "rx")
+    // {
+    //     uint16_t fpga_id = 0;
+    //     uint8_t reg_addr = 0;
+    //     uint8_t data[L2_RX_DATA_SIZE] = {};
+
+    //     cout << endl;
+    //     cout << "====================================" << endl;
+    //     cout << " L2 RX - Configuration Packet" << endl;
+    //     cout << "====================================" << endl;
+
+    //     cout << "Interface      : usb0" << endl;
+    //     cout << "Expected Type  : 0x"
+    //         << hex
+    //         << L2_RX_PACKETLEN
+    //         << dec
+    //         << endl;
+
+    //     cout << endl;
+    //     cout << "Waiting for packet from GUI..." << endl;
+
+    //     bool receive_ok =
+    //         l2_receive_packet(
+    //             "usb0",
+    //             L2_RX_PACKETLEN,
+    //             &fpga_id,
+    //             &reg_addr,
+    //             data);
+
+    //     if (!receive_ok)
+    //     {
+    //         cout << "L2 RX failed." << endl;
+    //         return -1;
+    //     }
+
+    //     cout << endl;
+    //     cout << "Packet received successfully." << endl;
+
+    //     cout << "FPGA ID         : 0x"
+    //         << hex
+    //         << uppercase
+    //         << setw(4)
+    //         << setfill('0')
+    //         << fpga_id
+    //         << dec
+    //         << setfill(' ')
+    //         << endl;
+
+    //     cout << "Register Addr   : 0x"
+    //         << hex
+    //         << uppercase
+    //         << setw(2)
+    //         << setfill('0')
+    //         << static_cast<unsigned int>(reg_addr)
+    //         << dec
+    //         << setfill(' ')
+    //         << endl;
+
+    //     cout << "Data            : ";
+
+    //     for (int i = 0; i < L2_RX_DATA_SIZE; i++)
+    //     {
+    //         cout << hex
+    //             << uppercase
+    //             << setw(2)
+    //             << setfill('0')
+    //             << static_cast<unsigned int>(data[i]);
+
+    //         if (i < L2_RX_DATA_SIZE - 1)
+    //             cout << " ";
+    //     }
+
+    //     cout << dec << setfill(' ') << endl;
+
+
+    //     /*
+    //     * =====================================================
+    //     * Apply GUI Register Command
+    //     * =====================================================
+    //     */
+
+    //     if (!applyRegisterCommand(
+    //             fpga_id,
+    //             reg_addr,
+    //             data))
+    //     {
+    //         cout << "Failed to apply GUI register command."
+    //             << endl;
+
+    //         return -1;
+    //     }
+
+    //     cout << endl;
+    //     cout << "GUI command processed successfully."
+    //         << endl;
+
+    //     return 0;
+    // }    
 
     RegisterController fpga;
+
+    /*
+    * =========================================================
+    * SDR STARTUP
+    * =========================================================
+    */
+   if (cmd == "startup")
+    {
+        if (!initializeSDR())
+        {
+            return -1;
+        }
+
+        return 0;
+    }
+
+    /*if (cmd == "startup")
+    {
+        AD9361Controller ad9361;
+
+        if (!ad9361.init())
+        {
+            cout << "AD9361 initialization failed." << endl;
+            return -1;
+        }
+
+        const uint64_t DEFAULT_RX_SAMPLE_RATE = 2083340ULL;
+        const uint64_t DEFAULT_RX_BANDWIDTH  = 200000ULL;
+
+        if (!ad9361.setRxSampleRate(DEFAULT_RX_SAMPLE_RATE))
+        {
+            cout << "Failed to set default RX Sample Rate."
+                << endl;
+            return -1;
+        }
+
+        if (!ad9361.setRxBandwidth(DEFAULT_RX_BANDWIDTH))
+        {
+            cout << "Failed to set default RX Bandwidth."
+                << endl;
+            return -1;
+        }        
+
+        cout << endl;
+        cout << "====================================" << endl;
+        cout << "       SDR Startup Configuration" << endl;
+        cout << "====================================" << endl;
+
+        cout << "RX Sample Rate : "
+            << DEFAULT_RX_SAMPLE_RATE
+            << " Hz" << endl;
+
+        cout << "RX Bandwidth   : "
+            << DEFAULT_RX_BANDWIDTH
+            << " Hz" << endl;
+
+        cout << "Startup configuration completed."
+            << endl;
+
+        return 0;
+    }    */
 
     /*
      * =========================================================
@@ -1739,245 +2287,496 @@ int main(int argc, char *argv[])
      */
     if (cmd == "dma")
     {
-        /*
-         * Initialize AXI DMA register access
-         */
-        if (dma_init() != 0)
-        {
-            cout << "DMA initialization failed." << endl;
-            return -1;
-        }
 
         /*
-         * sdr_app dma
-         */
+        * sdr_app dma
+        */
         if (argc == 2)
         {
-            dma_print_status();
+            if (dma_init(&psd_dma, PSD_DMA_BASE_ADDR) != 0)
+            {
+                cout << "PSD DMA initialization failed." << endl;
+                return -1;
+            }
+
+            dma_print_status(&psd_dma);
+            dma_close(&psd_dma);
         }
 
         /*
-         * sdr_app dma <subcommand>
-         */
+        * sdr_app dma <subcommand>
+        */
         else if (argc == 3)
         {
             string subcmd(argv[2]);
 
+
             /*
-             * -------------------------------------------------
-             * DMA RESET
-             * -------------------------------------------------
-             */
+            * DMA RESET
+            */
             if (subcmd == "reset")
             {
-                dma_reset();
+                if (dma_init(&psd_dma, PSD_DMA_BASE_ADDR) != 0)
+                {
+                    cout << "PSD DMA initialization failed." << endl;
+                    return -1;
+                }
+
+                dma_reset(&psd_dma);
 
                 cout << "DMA Reset Done" << endl;
 
-                dma_print_status();
+                dma_print_status(&psd_dma);
+
+                dma_close(&psd_dma);
             }
 
+
             /*
-             * -------------------------------------------------
-             * DMA CAPTURE
-             * -------------------------------------------------
-             */
+            * DMA CAPTURE
+            */
             else if (subcmd == "capture")
             {
+
+                if (dma_init(&psd_dma, PSD_DMA_BASE_ADDR) != 0)
+                {
+                    cout << "PSD DMA initialization failed." << endl;
+                    return -1;
+                }                
                 const uint32_t dma_buffer_addr = 0x3F000000;
                 const uint32_t dma_length = 8192;
 
+
                 cout << endl;
                 cout << "====================================" << endl;
-                cout << " AXI DMA S2MM Capture" << endl;
+                cout << " AXI DMA S2MM Capture - PSD" << endl;
                 cout << "====================================" << endl;
 
-                cout << "Buffer Address : 0x"
-                     << hex << dma_buffer_addr << dec << endl;
+                cout << "DMA Base      : 0x"
+                    << hex << PSD_DMA_BASE_ADDR
+                    << dec << endl;
+
+                cout << "UIO           : /dev/uio0" << endl;
+
+                cout << "Buffer Address: 0x"
+                    << hex << dma_buffer_addr
+                    << dec << endl;
 
                 cout << "Transfer Length: "
-                     << dma_length << " bytes" << endl;
+                    << dma_length << " bytes"
+                    << endl;
+
 
                 /*
-                 * ---------------------------------------------
-                 * Open FPGA register controller
-                 * ---------------------------------------------
-                 */
+                * Open FPGA register controller
+                */
                 if (!fpga.open())
                 {
                     cout << "FPGA Open Failed" << endl;
-                    dma_irq_close();                    
-                    dma_close();
+
+                    dma_close(&psd_dma);
+
                     return -1;
                 }
 
+
                 /*
-                 * ---------------------------------------------
-                 * Open UIO interrupt
-                 * ---------------------------------------------
-                 */
-                if (dma_irq_init() != 0)
+                * Open UIO interrupt
+                */
+                if (dma_irq_init(
+                        &psd_dma,
+                        "/dev/uio0") != 0)
                 {
-                    cout << "DMA UIO initialization failed." << endl;
-                    dma_irq_close();                    
-                    dma_close();
+                    cout << "DMA UIO initialization failed."
+                        << endl;
+
+                    fpga.close();
+
+                    dma_close(&psd_dma);
+
                     return -1;
                 }
 
+
                 /*
-                 * ---------------------------------------------
-                 * Start DMA first
-                 *
-                 * DMA is now waiting for AXI-Stream data.
-                 * ---------------------------------------------
-                 */
+                * Start DMA first
+                */
                 dma_start_s2mm(
+                    &psd_dma,
                     dma_buffer_addr,
                     dma_length
                 );
 
-                /*
-                 * ---------------------------------------------
-                 * Enable AXI-Stream data generation
-                 * ---------------------------------------------
-                 */
-                fpga.setPSDCaptureStart(true);
-
-                cout << endl;
-                cout << "Waiting for DMA IRQ..." << endl;
 
                 /*
-                 * ---------------------------------------------
-                 * Wait for DMA interrupt through UIO
-                 *
-                 * dma_wait_for_completion() now waits on
-                 * /dev/uio0 instead of polling DMASR.
-                 * ---------------------------------------------
-                 */
-            bool capture_ok =
-                dma_wait_for_completion(5000);
+                * Enable AXI-Stream data generation
+                */
+                fpga.setSoftStart(true);
 
-            /*
-            * ---------------------------------------------
-            * Stop AXI-Stream data generation
-            * ---------------------------------------------
-            */
-            fpga.setPSDCaptureStart(false);
-
-            /*
-            * ---------------------------------------------
-            * Report result and dump buffer
-            * ---------------------------------------------
-            */
-            // if (capture_ok)
-            // {
-            //     cout << "DMA Capture Completed" << endl;
-
-            //     dma_dump_buffer(
-            //         dma_buffer_addr,
-            //         dma_length
-            //     );
-            // }
-
-            if (capture_ok)
-            {
-                cout << "DMA Capture Completed" << endl;
-
-                dma_dump_buffer(
-                    dma_buffer_addr,
-                    dma_length
-                );
 
                 cout << endl;
-                cout << "Sending DMA buffer over USB0..." << endl;
+                cout << "Waiting for DMA IRQ..."
+                    << endl;
 
-                const uint8_t *dma_data =
-                    dma_map_buffer(
+
+                /*
+                * Wait for DMA interrupt
+                */
+                bool capture_ok =
+                    dma_wait_for_completion(
+                        &psd_dma,
+                        5000
+                    );
+
+
+                /*
+                * Stop AXI-Stream data generation
+                */
+                fpga.setSoftStart(false);
+
+
+                /*
+                * Report result and dump buffer
+                */
+                if (capture_ok)
+                {
+                    cout << "DMA Capture Completed"
+                        << endl;
+
+
+                    dma_dump_buffer(
                         dma_buffer_addr,
                         dma_length
                     );
 
-                if (dma_data == nullptr)
-                {
-                    cout << "Failed to map DMA buffer for PSD send."
+
+                    cout << endl;
+                    cout << "Sending DMA buffer over USB0..."
                         << endl;
-                }
-                else
-                {
-                    bool send_ok =
-                        l2_send_packet(
-                            "usb0",
-                            L2_ETHERTYPE_PSD,
-                            L2_ID_PSD,
-                            dma_data,
+
+
+                    const uint8_t *dma_data =
+                        dma_map_buffer(
+                            dma_buffer_addr,
                             dma_length
                         );
 
-                    dma_unmap_buffer(
-                        dma_data,
-                        dma_length
-                    );
 
-                    if (send_ok)
+                    if (dma_data == nullptr)
                     {
-                        cout << "PSD packet transmitted successfully."
+                        cout << "Failed to map DMA buffer for PSD send."
                             << endl;
                     }
                     else
                     {
-                        cout << "PSD packet transmission failed."
-                            << endl;
+                        bool send_ok =
+                            l2_send_packet(
+                                "usb0",
+                                L2_ETHERTYPE_PSD,
+                                L2_ID_PSD,
+                                dma_data,
+                                dma_length
+                            );
+
+
+                        dma_unmap_buffer(
+                            dma_data,
+                            dma_length
+                        );
+
+
+                        if (send_ok)
+                        {
+                            cout << "PSD packet transmitted successfully."
+                                << endl;
+                        }
+                        else
+                        {
+                            cout << "PSD packet transmission failed."
+                                << endl;
+                        }
                     }
                 }
-            }            
+                else
+                {
+                    cout << "DMA Capture Failed"
+                        << endl;
+                }
+
+
+                /*
+                * Print final DMA status
+                */
+                dma_print_status(&psd_dma);
+
+
+                /*
+                * Close UIO / DMA
+                */
+                dma_irq_close(&psd_dma);
+                dma_close(&psd_dma);
+
+                fpga.close();
+            }
+
+    /*
+    * -----------------------------------------------------
+    * DMA AUDIO CAPTURE
+    * -----------------------------------------------------
+    */
+    else if (subcmd == "audio")
+    {
+        const uint32_t audio_buffer_addr = 0x3F002000;
+        const uint32_t audio_dma_length  = 1024;
+
+        cout << endl;
+        cout << "====================================" << endl;
+        cout << " AXI DMA S2MM Capture - AUDIO" << endl;
+        cout << "====================================" << endl;
+
+        cout << "DMA Base       : 0x"
+            << hex << AUDIO_DMA_BASE_ADDR
+            << dec << endl;
+
+        cout << "UIO            : /dev/uio1" << endl;
+
+        cout << "Buffer Address : 0x"
+            << hex << audio_buffer_addr
+            << dec << endl;
+
+        cout << "Transfer Length: "
+            << audio_dma_length
+            << " bytes"
+            << endl;
+
+        cout << "Samples        : 512 x 16-bit"
+            << endl;
+
+
+        /*
+        * ---------------------------------------------
+        * Initialize Audio AXI DMA
+        * ---------------------------------------------
+        */
+        if (dma_init(
+                &audio_dma,
+                AUDIO_DMA_BASE_ADDR) != 0)
+        {
+            cout << "Audio DMA initialization failed."
+                << endl;
+
+            return -1;
+        }
+
+
+        /*
+        * ---------------------------------------------
+        * Open FPGA register controller
+        * ---------------------------------------------
+        */
+        if (!fpga.open())
+        {
+            cout << "FPGA Open Failed"
+                << endl;
+
+            dma_close(&audio_dma);
+
+            return -1;
+        }
+
+
+        /*
+        * ---------------------------------------------
+        * Open UIO interrupt
+        * ---------------------------------------------
+        */
+        if (dma_irq_init(
+                &audio_dma,
+                "/dev/uio1") != 0)
+        {
+            cout << "Audio DMA UIO initialization failed."
+                << endl;
+
+            fpga.close();
+            dma_close(&audio_dma);
+
+            return -1;
+        }
+
+
+        /*
+        * ---------------------------------------------
+        * Start Audio DMA first
+        * ---------------------------------------------
+        */
+        dma_start_s2mm(
+            &audio_dma,
+            audio_buffer_addr,
+            audio_dma_length
+        );
+
+        /*
+        * ---------------------------------------------
+        * Enable Audio Modulator
+        *
+        * Register Addr 4
+        * ---------------------------------------------
+        */
+        //fpga.setModEnable(true);
+
+
+        /*
+        * ---------------------------------------------
+        * Enable AXI-Stream Audio data generation
+        *
+        * Same trigger as PSD for now.
+        * ---------------------------------------------
+        */
+        fpga.setSendPacket(true);
+
+
+        cout << endl;
+        cout << "Waiting for Audio DMA IRQ..."
+            << endl;
+
+
+        /*
+        * ---------------------------------------------
+        * Wait for DMA completion
+        * ---------------------------------------------
+        */
+        bool capture_ok =
+            dma_wait_for_completion(
+                &audio_dma,
+                5000
+            );
+
+
+        /*
+        * ---------------------------------------------
+        * Stop AXI-Stream data generation
+        * ---------------------------------------------
+        */
+        fpga.setSendPacket(false);
+
+        /*
+        * ---------------------------------------------
+        * Disable Audio Modulator
+        *
+        * Register Addr 4
+        * ---------------------------------------------
+        */
+        //fpga.setModEnable(false);
+
+
+        /*
+        * ---------------------------------------------
+        * Report result
+        * ---------------------------------------------
+        */
+        // if (capture_ok)
+        // {
+        //     cout << "Audio DMA Capture Completed"
+        //         << endl;
+
+        //     cout << "Dumping Audio buffer..."
+        //         << endl;
+
+        //     dma_dump_buffer(
+        //         audio_buffer_addr,
+        //         audio_dma_length
+        //     );
+        // }
+
+        if (capture_ok)
+        {
+            dma_dump_buffer(
+                audio_buffer_addr,
+                audio_dma_length);
+
+            const uint8_t *audio_data =
+                dma_map_buffer(
+                    audio_buffer_addr,
+                    audio_dma_length);
+
+            if (audio_data == nullptr)
+            {
+                cout << "Failed to map Audio DMA buffer." << endl;
+            }
             else
             {
-                cout << "DMA Capture Failed" << endl;
+                bool tx_ok = l2_send_packet(
+                    "usb0",
+                    L2_ETHERTYPE_AUDIO,
+                    L2_ID_AUDIO,
+                    audio_data,
+                    audio_dma_length);
+
+                if (tx_ok)
+                {
+                    cout << "Audio L2 frame sent successfully."
+                        << endl;
+                }
+                else
+                {
+                    cout << "Audio L2 frame send failed."
+                        << endl;
+                }
+
+                dma_unmap_buffer(
+                    audio_data,
+                    audio_dma_length);
             }
+        }
+        else
+        {
+            cout << "Audio DMA Capture Failed"
+                << endl;
+        }
+
+
+        /*
+        * ---------------------------------------------
+        * Final DMA status
+        * ---------------------------------------------
+        */
+        dma_print_status(&audio_dma);
+
+
+        /*
+        * ---------------------------------------------
+        * Close UIO / DMA
+        * ---------------------------------------------
+        */
+        dma_irq_close(&audio_dma);
+        dma_close(&audio_dma);
+
+        fpga.close();
+    }            
+
 
             /*
-                * ---------------------------------------------
-                * Print final DMA status
-                * ---------------------------------------------
-                */
-            dma_print_status();
-
-            /*
-                * ---------------------------------------------
-                * Close UIO
-                * ---------------------------------------------
-                */
-            dma_irq_close();
-            }
-
-            /*
-             * -------------------------------------------------
-             * UNKNOWN DMA COMMAND
-             * -------------------------------------------------
-             */
+            * UNKNOWN DMA COMMAND
+            */
             else
             {
                 cout << "Unknown DMA command: "
-                     << subcmd << endl;
+                    << subcmd
+                    << endl;
 
                 printHelp();
             }
         }
 
-        /*
-         * Close DMA register mapping
-         */
-        dma_irq_close();
-        dma_close();
 
         return 0;
     }
 
     /*
-     * =========================================================
-     * Register Controller Commands
-     * =========================================================
-     */
+    * =========================================================
+    * Register Controller Commands
+    * =========================================================
+    */
 
     if (!fpga.open())
     {
@@ -1986,16 +2785,14 @@ int main(int argc, char *argv[])
     }
 
     /*
-     * ---------------------------------------------------------
-     * SOFT RESET
-     * ---------------------------------------------------------
-     *
-     * Generates a reset pulse.
-     *
-     * Usage:
-     *   ./sdr_app reset
-     *
-     */
+    * ---------------------------------------------------------
+    * SOFT RESET
+    * ---------------------------------------------------------
+    *
+    * Usage:
+    *   ./sdr_app reset
+    *
+    */
     if (cmd == "reset")
     {
         fpga.setSoftReset(true);
@@ -2004,16 +2801,292 @@ int main(int argc, char *argv[])
     }
 
     /*
-     * ---------------------------------------------------------
-     * BANDWIDTH
-     * ---------------------------------------------------------
-     *
-     * 4-bit value
-     *
-     * Usage:
-     *   ./sdr_app bandwidth <value>
-     *
-     */
+    * ---------------------------------------------------------
+    * SOFT START
+    * ---------------------------------------------------------
+    *
+    * Usage:
+    *   ./sdr_app soft-start <0|1>
+    *
+    */
+    else if (cmd == "soft-start")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing Soft Start value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+            //strtoul(argv[2], nullptr, 10);  // Decimal input
+
+        if (value > 1)
+        {
+            cout << "Invalid Soft Start value." << endl;
+            cout << "Allowed values: 0 or 1" << endl;
+            return -1;
+        }
+
+        fpga.setSoftStart(value);
+
+        cout << "Soft Start = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * SEND PACKET
+    * ---------------------------------------------------------
+    *
+    * Usage:
+    *   ./sdr_app send-packet <0|1>
+    *
+    */
+    else if (cmd == "send-packet")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing Send Packet value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+            //strtoul(argv[2], nullptr, 10);  // Decimal input
+
+        if (value > 1)
+        {
+            cout << "Invalid Send Packet value." << endl;
+            cout << "Allowed values: 0 or 1" << endl;
+            return -1;
+        }
+
+        fpga.setSendPacket(value);
+
+        cout << "Send Packet = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * MODULATION ENABLE
+    * ---------------------------------------------------------
+    *
+    * Usage:
+    *   ./sdr_app mod-enable <0|1>
+    *
+    */
+    else if (cmd == "mod-enable")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing Modulation Enable value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+            //strtoul(argv[2], nullptr, 10);  // Decimal input
+
+        if (value > 1)
+        {
+            cout << "Invalid Modulation Enable value." << endl;
+            cout << "Allowed values: 0 or 1" << endl;
+            return -1;
+        }
+
+        fpga.setModEnable(value);
+
+        cout << "Modulation Enable = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * SQUELCH ENABLE
+    * ---------------------------------------------------------
+    *
+    * Usage:
+    *   ./sdr_app squelch-enable <0|1>
+    *
+    */
+    else if (cmd == "squelch-enable")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing Squelch Enable value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+           //strtoul(argv[2], nullptr, 10);  // Decimal input
+
+        if (value > 1)
+        {
+            cout << "Invalid Squelch Enable value." << endl;
+            cout << "Allowed values: 0 or 1" << endl;
+            return -1;
+        }
+
+        fpga.setSquelchEnable(value);
+
+        cout << "Squelch Enable = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * MGC2 ON
+    * ---------------------------------------------------------
+    *
+    * Usage:
+    *   ./sdr_app mgc2-on <0|1>
+    *
+    */
+    else if (cmd == "mgc2-on")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing MGC2 value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        if (value > 1)
+        {
+            cout << "Invalid MGC2 value." << endl;
+            cout << "Allowed values: 0 or 1" << endl;
+            return -1;
+        }
+
+        fpga.setMGC2On(value);
+
+        cout << "MGC2 On = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * AGC1 ON
+    * ---------------------------------------------------------
+    *
+    * Usage:
+    *   ./sdr_app agc1-on <0|1>
+    *
+    */
+    else if (cmd == "agc1-on")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing AGC1 value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        if (value > 1)
+        {
+            cout << "Invalid AGC1 value." << endl;
+            cout << "Allowed values: 0 or 1" << endl;
+            return -1;
+        }
+
+        fpga.setAGC1On(value);
+
+        cout << "AGC1 On = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * AGC2 ON
+    * ---------------------------------------------------------
+    *
+    * Usage:
+    *   ./sdr_app agc2-on <0|1>
+    *
+    */
+    else if (cmd == "agc2-on")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing AGC2 value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        if (value > 1)
+        {
+            cout << "Invalid AGC2 value." << endl;
+            cout << "Allowed values: 0 or 1" << endl;
+            return -1;
+        }
+
+        fpga.setAGC2On(value);
+
+        cout << "AGC2 On = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * AMP OK
+    * ---------------------------------------------------------
+    *
+    * Usage:
+    *   ./sdr_app amp-ok <0|1>
+    *
+    */
+    else if (cmd == "amp-ok")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing Amp OK value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        if (value > 1)
+        {
+            cout << "Invalid Amp OK value." << endl;
+            cout << "Allowed values: 0 or 1" << endl;
+            return -1;
+        }
+
+        fpga.setAmpOK(value);
+
+        cout << "Amp OK = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * BANDWIDTH
+    * ---------------------------------------------------------
+    *
+    * 4-bit value
+    *
+    * Usage:
+    *   ./sdr_app bandwidth <value>
+    *
+    */
     else if (cmd == "bandwidth")
     {
         if (argc < 3)
@@ -2035,233 +3108,57 @@ int main(int argc, char *argv[])
         fpga.setBandwidth(value);
 
         cout << "Bandwidth Select = "
-             << value
-             << endl;
+            << value
+            << endl;
     }
 
     /*
-     * ---------------------------------------------------------
-     * RX CHANNEL
-     * ---------------------------------------------------------
-     *
-     * 1-bit value
-     *
-     * Usage:
-     *   ./sdr_app rxch 0
-     *   ./sdr_app rxch 1
-     *
-     */
-    else if (cmd == "rxch")
+    * ---------------------------------------------------------
+    * MODE SELECT
+    * ---------------------------------------------------------
+    *
+    * 8-bit value
+    *
+    * Usage:
+    *   ./sdr_app mode-select <value>
+    *
+    */
+    else if (cmd == "mode-select")
     {
         if (argc < 3)
         {
-            cout << "Missing RX channel value" << endl;
+            cout << "Missing Mode Select value" << endl;
             return -1;
         }
 
         uint32_t value =
             strtoul(argv[2], nullptr, 0);
 
-        if (value > 1)
+        if (value > 0xFF)
         {
-            cout << "Invalid RX channel value." << endl;
-            cout << "Allowed values: 0 or 1" << endl;
+            cout << "Invalid Mode Select value." << endl;
+            cout << "Range: 0 to 255" << endl;
             return -1;
         }
 
-        fpga.setRxChannel(value);
+        fpga.setModeSelect(value);
 
-        cout << "RX Channel Select = "
-             << value
-             << endl;
+        cout << "Mode Select = "
+            << value
+            << endl;
     }
 
     /*
-     * ---------------------------------------------------------
-     * PSD START
-     * ---------------------------------------------------------
-     *
-     * Usage:
-     *   ./sdr_app psd-start
-     *   ./sdr_app psd-start 1
-     *   ./sdr_app psd-start 0
-     *
-     */
-    else if (cmd == "psd-start")
-    {
-        uint32_t value = 1;
-
-        if (argc >= 3)
-        {
-            value =
-                strtoul(argv[2], nullptr, 0);
-        }
-
-        if (value > 1)
-        {
-            cout << "Invalid PSD start value." << endl;
-            cout << "Allowed values: 0 or 1" << endl;
-            return -1;
-        }
-
-        fpga.setPSDStart(value);
-
-        cout << "PSD Start = "
-             << value
-             << endl;
-    }
-
-    /*
-     * ---------------------------------------------------------
-     * PSD RATE
-     * ---------------------------------------------------------
-     *
-     * 12-bit value
-     *
-     * Usage:
-     *   ./sdr_app psd-rate <value>
-     *
-     * Range:
-     *   0 - 4095
-     *
-     */
-    else if (cmd == "psd-rate")
-    {
-        if (argc < 3)
-        {
-            cout << "Missing PSD rate value" << endl;
-            return -1;
-        }
-
-        uint32_t value =
-            strtoul(argv[2], nullptr, 0);
-
-        if (value > 0xFFF)
-        {
-            cout << "Invalid PSD rate value." << endl;
-            cout << "Range: 0 to 4095" << endl;
-            return -1;
-        }
-
-        fpga.setPSDPerSec(value);
-
-        cout << "PSD Per Sec = "
-             << value
-             << endl;
-    }
-
-    /*
-     * ---------------------------------------------------------
-     * REALTIME MAX HOLD ENABLE
-     * ---------------------------------------------------------
-     *
-     * Usage:
-     *   ./sdr_app maxhold 0
-     *   ./sdr_app maxhold 1
-     *
-     */
-    else if (cmd == "maxhold")
-    {
-        if (argc < 3)
-        {
-            cout << "Missing MaxHold enable value" << endl;
-            return -1;
-        }
-
-        uint32_t value =
-            strtoul(argv[2], nullptr, 0);
-
-        if (value > 1)
-        {
-            cout << "Invalid MaxHold value." << endl;
-            cout << "Allowed values: 0 or 1" << endl;
-            return -1;
-        }
-
-        fpga.setMaxHoldEnable(value);
-
-        cout << "RealTime MaxHold Enable = "
-             << value
-             << endl;
-    }
-
-    /*
-     * ---------------------------------------------------------
-     * REALTIME MAX HOLD DELAY
-     * ---------------------------------------------------------
-     *
-     * 32-bit value
-     *
-     * Usage:
-     *   ./sdr_app maxhold-delay <value>
-     *
-     */
-    else if (cmd == "maxhold-delay")
-    {
-        if (argc < 3)
-        {
-            cout << "Missing MaxHold delay value" << endl;
-            return -1;
-        }
-
-        uint32_t value =
-            strtoul(argv[2], nullptr, 0);
-
-        fpga.setMaxHoldDelay(value);
-
-        cout << "RealTime MaxHold Delay = 0x"
-             << hex
-             << value
-             << dec
-             << endl;
-    }
-
-    /*
-     * ---------------------------------------------------------
-     * PSD CAPTURE START
-     * ---------------------------------------------------------
-     *
-     * Usage:
-     *   ./sdr_app psd-capture
-     *   ./sdr_app psd-capture 1
-     *   ./sdr_app psd-capture 0
-     *
-     */
-    else if (cmd == "psd-capture")
-    {
-        uint32_t value = 1;
-
-        if (argc >= 3)
-        {
-            value =
-                strtoul(argv[2], nullptr, 0);
-        }
-
-        if (value > 1)
-        {
-            cout << "Invalid PSD capture value." << endl;
-            cout << "Allowed values: 0 or 1" << endl;
-            return -1;
-        }
-
-        fpga.setPSDCaptureStart(value);
-
-        cout << "PSD Capture Start = "
-             << value
-             << endl;
-    }
-
-    /*
-     * ---------------------------------------------------------
-     * LED TIMER
-     * ---------------------------------------------------------
-     *
-     * 32-bit value
-     *
-     * Usage:
-     *   ./sdr_app led-timer <value>
-     *
-     */
+    * ---------------------------------------------------------
+    * LED TIMER
+    * ---------------------------------------------------------
+    *
+    * 32-bit value
+    *
+    * Usage:
+    *   ./sdr_app led-timer <value>
+    *
+    */
     else if (cmd == "led-timer")
     {
         if (argc < 3)
@@ -2275,18 +3172,189 @@ int main(int argc, char *argv[])
 
         fpga.setLedTimer(value);
 
-        cout << "LED Timer = 0x"
-             << hex
-             << value
-             << dec
-             << endl;
+        cout << "LED Timer = "
+            << value
+            << endl;
     }
 
     /*
-     * ---------------------------------------------------------
-     * STATUS
-     * ---------------------------------------------------------
-     */
+    * ---------------------------------------------------------
+    * MESSAGE VALUE
+    * ---------------------------------------------------------
+    *
+    * 32-bit value
+    *
+    * Usage:
+    *   ./sdr_app msg-value <value>
+    *
+    */
+    else if (cmd == "msg-value")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing Message Value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        fpga.setMsgValue(value);
+
+        cout << "Message Value = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * A COEFFICIENT 1
+    * ---------------------------------------------------------
+    *
+    * 8-bit value
+    *
+    * Usage:
+    *   ./sdr_app a-coeff1 <value>
+    *
+    */
+    else if (cmd == "a-coeff1")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing A Coefficient 1 value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        if (value > 0xFF)
+        {
+            cout << "Invalid A Coefficient 1 value." << endl;
+            cout << "Range: 0 to 255" << endl;
+            return -1;
+        }
+
+        fpga.setACoeff1(value);
+
+        cout << "A Coefficient 1 = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * A COEFFICIENT 2
+    * ---------------------------------------------------------
+    *
+    * 8-bit value
+    *
+    * Usage:
+    *   ./sdr_app a-coeff2 <value>
+    *
+    */
+    else if (cmd == "a-coeff2")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing A Coefficient 2 value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        if (value > 0xFF)
+        {
+            cout << "Invalid A Coefficient 2 value." << endl;
+            cout << "Range: 0 to 255" << endl;
+            return -1;
+        }
+
+        fpga.setACoeff2(value);
+
+        cout << "A Coefficient 2 = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * REF1
+    * ---------------------------------------------------------
+    *
+    * 24-bit value
+    *
+    * Usage:
+    *   ./sdr_app ref1 <value>
+    *
+    */
+    else if (cmd == "ref1")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing Ref1 value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        if (value > 0xFFFFFF)
+        {
+            cout << "Invalid Ref1 value." << endl;
+            cout << "Range: 0 to 16777215" << endl;
+            return -1;
+        }
+
+        fpga.setRef1(value);
+
+        cout << "Ref1 = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * REF2
+    * ---------------------------------------------------------
+    *
+    * 24-bit value
+    *
+    * Usage:
+    *   ./sdr_app ref2 <value>
+    *
+    */
+    else if (cmd == "ref2")
+    {
+        if (argc < 3)
+        {
+            cout << "Missing Ref2 value" << endl;
+            return -1;
+        }
+
+        uint32_t value =
+            strtoul(argv[2], nullptr, 0);
+
+        if (value > 0xFFFFFF)
+        {
+            cout << "Invalid Ref2 value." << endl;
+            cout << "Range: 0 to 16777215" << endl;
+            return -1;
+        }
+
+        fpga.setRef2(value);
+
+        cout << "Ref2 = "
+            << value
+            << endl;
+    }
+
+    /*
+    * ---------------------------------------------------------
+    * STATUS
+    * ---------------------------------------------------------
+    */
     else if (cmd == "status")
     {
         cout << endl;
@@ -2294,48 +3362,78 @@ int main(int argc, char *argv[])
         cout << " Register Controller Status" << endl;
         cout << "====================================" << endl;
 
-        cout << "CONTROL      : 0x"
-             << hex
-             << fpga.getControl()
-             << dec
-             << endl;
+        uint32_t control =
+            fpga.getControl();
 
-        cout << "BANDWIDTH    : 0x"
-             << hex
-             << fpga.getBandwidth()
-             << dec
-             << endl;
+        uint32_t bandwidth =
+            fpga.getBandwidth();
 
-        cout << "PSD RATE     : 0x"
-             << hex
-             << fpga.getPSDPerSec()
-             << dec
-             << endl;
+        uint32_t mode =
+            fpga.getModeSelect();
 
-        cout << "MAXHOLD DELAY: 0x"
-             << hex
-             << fpga.getMaxHoldDelay()
-             << dec
-             << endl;
+        uint32_t ledTimer =
+            fpga.getLedTimer();
 
-        cout << "LED TIMER    : 0x"
-             << hex
-             << fpga.getLedTimer()
-             << dec
-             << endl;
+        uint32_t message =
+            fpga.getMsgValue();
+
+        uint32_t coefficients =
+            fpga.getCoefficients();
+
+        uint32_t ref1 =
+            fpga.getRef1();
+
+        uint32_t ref2 =
+            fpga.getRef2();
+
+        cout << "CONTROL      : "
+            << control
+            << endl;
+
+        cout << "BANDWIDTH    : "
+            << bandwidth
+            << endl;
+
+        cout << "MODE         : "
+            << mode
+            << endl;
+
+        cout << "LED TIMER    : "
+            << ledTimer
+            << endl;
+
+        cout << "MESSAGE      : "
+            << message
+            << endl;
+
+        cout << "A COEFF1     : "
+            << (coefficients & 0xFF)
+            << endl;
+
+        cout << "A COEFF2     : "
+            << ((coefficients >> 8) & 0xFF)
+            << endl;
+
+        cout << "REF1         : "
+            << ref1
+            << endl;
+
+        cout << "REF2         : "
+            << ref2
+            << endl;
     }
 
     /*
-     * ---------------------------------------------------------
-     * UNKNOWN COMMAND
-     * ---------------------------------------------------------
-     */
+    * ---------------------------------------------------------
+    * UNKNOWN COMMAND
+    * ---------------------------------------------------------
+    */
     else
     {
         cout << "Unknown command: "
-             << cmd
-             << endl
-             << endl;
+            << cmd
+            << endl
+            << endl;
 
         printHelp();
 
@@ -2347,4 +3445,4 @@ int main(int argc, char *argv[])
     fpga.close();
 
     return 0;
-}
+    }

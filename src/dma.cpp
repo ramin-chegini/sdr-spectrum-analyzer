@@ -6,55 +6,75 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
-
-/*==========================================================
- * Global State
- *=========================================================*/
-
-static int uio_fd = -1;
-static int dma_fd = -1;
-
-static volatile uint32_t *dma_regs = nullptr;
+#include <string.h>
 
 
 /*==========================================================
  * Initialize DMA
  *=========================================================*/
 
-int dma_init(void)
+int dma_init(DmaContext *ctx, uint32_t base_addr)
 {
-    dma_fd = open("/dev/mem", O_RDWR | O_SYNC);
+    if (ctx == nullptr)
+    {
+        printf("DMA context is null.\n");
+        return -1;
+    }
 
-    if (dma_fd < 0)
+    /*------------------------------------------------------
+     * Initialize context
+     *-----------------------------------------------------*/
+
+    ctx->dma_fd = -1;
+    ctx->uio_fd = -1;
+    ctx->dma_regs = nullptr;
+    ctx->base_addr = base_addr;
+    ctx->map_size = DMA_MAP_SIZE;
+
+
+    /*------------------------------------------------------
+     * Open /dev/mem
+     *-----------------------------------------------------*/
+
+    ctx->dma_fd = open("/dev/mem", O_RDWR | O_SYNC);
+
+    if (ctx->dma_fd < 0)
     {
         perror("open(/dev/mem)");
         return -1;
     }
 
-    dma_regs = (volatile uint32_t *)mmap(
+
+    /*------------------------------------------------------
+     * Map AXI DMA registers
+     *-----------------------------------------------------*/
+
+    ctx->dma_regs = (volatile uint32_t *)mmap(
         nullptr,
-        SDR_DMA_MAP_SIZE,
+        ctx->map_size,
         PROT_READ | PROT_WRITE,
         MAP_SHARED,
-        dma_fd,
-        SDR_DMA_BASE_ADDR
+        ctx->dma_fd,
+        ctx->base_addr
     );
 
-    if (dma_regs == (volatile uint32_t *)MAP_FAILED)
+
+    if (ctx->dma_regs == (volatile uint32_t *)MAP_FAILED)
     {
         perror("mmap()");
 
-        close(dma_fd);
+        close(ctx->dma_fd);
 
-        dma_fd = -1;
-        dma_regs = nullptr;
+        ctx->dma_fd = -1;
+        ctx->dma_regs = nullptr;
 
         return -1;
     }
 
-    printf("AXI DMA mapped successfully.\n");
-    printf("Base Address : 0x%08X\n", SDR_DMA_BASE_ADDR);
-    printf("Map Size     : 0x%08X\n", SDR_DMA_MAP_SIZE);
+
+    printf("\nAXI DMA mapped successfully.\n");
+    printf("Base Address : 0x%08X\n", ctx->base_addr);
+    printf("Map Size     : 0x%08X\n", ctx->map_size);
 
     return 0;
 }
@@ -64,27 +84,36 @@ int dma_init(void)
  * Enable UIO IRQ
  *=========================================================*/
 
-static int dma_irq_enable(void)
+static int dma_irq_enable(DmaContext *ctx)
 {
-    if (uio_fd < 0)
+    if (ctx == nullptr)
+    {
+        printf("DMA context is null.\n");
+        return -1;
+    }
+
+    if (ctx->uio_fd < 0)
     {
         printf("UIO is not initialized.\n");
         return -1;
     }
 
+
     uint32_t enable = 1;
 
     ssize_t n = write(
-        uio_fd,
+        ctx->uio_fd,
         &enable,
         sizeof(enable)
     );
 
+
     if (n != sizeof(enable))
     {
-        perror("write(/dev/uio0) - enable IRQ");
+        perror("write(UIO) - enable IRQ");
         return -1;
     }
+
 
     return 0;
 }
@@ -94,26 +123,52 @@ static int dma_irq_enable(void)
  * Open UIO Interrupt
  *=========================================================*/
 
-int dma_irq_init(void)
+int dma_irq_init(
+    DmaContext *ctx,
+    const char *uio_device
+)
 {
-    uio_fd = open("/dev/uio0", O_RDWR);
-
-    if (uio_fd < 0)
+    if (ctx == nullptr)
     {
-        perror("open(/dev/uio0)");
+        printf("DMA context is null.\n");
         return -1;
     }
 
-    printf("DMA UIO opened successfully.\n");
-
-    if (dma_irq_enable() != 0)
+    if (uio_device == nullptr)
     {
-        close(uio_fd);
+        printf("UIO device is null.\n");
+        return -1;
+    }
 
-        uio_fd = -1;
+
+    ctx->uio_fd = open(
+        uio_device,
+        O_RDWR
+    );
+
+
+    if (ctx->uio_fd < 0)
+    {
+        perror("open(UIO)");
+        return -1;
+    }
+
+
+    printf(
+        "DMA UIO opened successfully: %s\n",
+        uio_device
+    );
+
+
+    if (dma_irq_enable(ctx) != 0)
+    {
+        close(ctx->uio_fd);
+
+        ctx->uio_fd = -1;
 
         return -1;
     }
+
 
     printf("DMA UIO IRQ enabled.\n");
 
@@ -125,13 +180,17 @@ int dma_irq_init(void)
  * Close UIO
  *=========================================================*/
 
-void dma_irq_close(void)
+void dma_irq_close(DmaContext *ctx)
 {
-    if (uio_fd >= 0)
-    {
-        close(uio_fd);
+    if (ctx == nullptr)
+        return;
 
-        uio_fd = -1;
+
+    if (ctx->uio_fd >= 0)
+    {
+        close(ctx->uio_fd);
+
+        ctx->uio_fd = -1;
     }
 }
 
@@ -140,26 +199,35 @@ void dma_irq_close(void)
  * Close DMA
  *=========================================================*/
 
-void dma_close(void)
+void dma_close(DmaContext *ctx)
 {
-    if (dma_regs != nullptr)
+    if (ctx == nullptr)
+        return;
+
+
+    if (ctx->dma_regs != nullptr)
     {
         munmap(
-            (void *)dma_regs,
-            SDR_DMA_MAP_SIZE
+            (void *)ctx->dma_regs,
+            ctx->map_size
         );
 
-        dma_regs = nullptr;
+        ctx->dma_regs = nullptr;
     }
 
-    if (dma_fd >= 0)
+
+    if (ctx->dma_fd >= 0)
     {
-        close(dma_fd);
+        close(ctx->dma_fd);
 
-        dma_fd = -1;
+        ctx->dma_fd = -1;
     }
 
-    printf("AXI DMA unmapped.\n");
+
+    printf(
+        "AXI DMA unmapped. Base = 0x%08X\n",
+        ctx->base_addr
+    );
 }
 
 
@@ -167,19 +235,24 @@ void dma_close(void)
  * Read Register
  *=========================================================*/
 
-uint32_t dma_read_reg(uint32_t offset)
+uint32_t dma_read_reg(
+    DmaContext *ctx,
+    uint32_t offset
+)
 {
-    if (dma_regs == nullptr)
-    {
+    if (ctx == nullptr)
         return 0;
-    }
 
-    if (offset >= SDR_DMA_MAP_SIZE)
-    {
+
+    if (ctx->dma_regs == nullptr)
         return 0;
-    }
 
-    return dma_regs[offset >> 2];
+
+    if (offset >= ctx->map_size)
+        return 0;
+
+
+    return ctx->dma_regs[offset >> 2];
 }
 
 
@@ -187,19 +260,25 @@ uint32_t dma_read_reg(uint32_t offset)
  * Write Register
  *=========================================================*/
 
-void dma_write_reg(uint32_t offset, uint32_t value)
+void dma_write_reg(
+    DmaContext *ctx,
+    uint32_t offset,
+    uint32_t value
+)
 {
-    if (dma_regs == nullptr)
-    {
+    if (ctx == nullptr)
         return;
-    }
 
-    if (offset >= SDR_DMA_MAP_SIZE)
-    {
+
+    if (ctx->dma_regs == nullptr)
         return;
-    }
 
-    dma_regs[offset >> 2] = value;
+
+    if (offset >= ctx->map_size)
+        return;
+
+
+    ctx->dma_regs[offset >> 2] = value;
 }
 
 
@@ -207,16 +286,23 @@ void dma_write_reg(uint32_t offset, uint32_t value)
  * Reset DMA
  *=========================================================*/
 
-void dma_reset(void)
+void dma_reset(DmaContext *ctx)
 {
+    if (ctx == nullptr)
+        return;
+
+
     dma_write_reg(
+        ctx,
         SDR_DMA_S2MM_DMACR,
         SDR_DMA_DMACR_RESET
     );
 
+
     /*
      * Give reset some time.
      */
+
     usleep(1000);
 }
 
@@ -226,22 +312,41 @@ void dma_reset(void)
  *=========================================================*/
 
 void dma_start_s2mm(
+    DmaContext *ctx,
     uint32_t buffer_addr,
     uint32_t length
 )
 {
-    if (dma_regs == nullptr)
+    if (ctx == nullptr)
+    {
+        printf("DMA context is null.\n");
+        return;
+    }
+
+
+    if (ctx->dma_regs == nullptr)
     {
         printf("DMA is not initialized.\n");
         return;
     }
 
-    printf("\nStarting S2MM transfer...\n");
+
+    printf(
+        "\nStarting S2MM transfer...\n"
+    );
+
+
+    printf(
+        "DMA Base    : 0x%08X\n",
+        ctx->base_addr
+    );
+
 
     printf(
         "Destination : 0x%08X\n",
         buffer_addr
     );
+
 
     printf(
         "Length      : %u bytes\n",
@@ -253,11 +358,15 @@ void dma_start_s2mm(
      * Reset DMA
      *-----------------------------------------------------*/
 
-    dma_reset();
+    dma_reset(ctx);
+
 
     printf(
         "DMASR after reset = 0x%08X\n",
-        dma_read_reg(SDR_DMA_S2MM_DMASR)
+        dma_read_reg(
+            ctx,
+            SDR_DMA_S2MM_DMASR
+        )
     );
 
 
@@ -268,15 +377,20 @@ void dma_start_s2mm(
      *-----------------------------------------------------*/
 
     dma_write_reg(
+        ctx,
         SDR_DMA_S2MM_DMASR,
         SDR_DMA_DMASR_IOC_IRQ |
         SDR_DMA_DMASR_DELAY_IRQ |
         SDR_DMA_DMASR_ERR_IRQ
     );
 
+
     printf(
         "DMASR after clear = 0x%08X\n",
-        dma_read_reg(SDR_DMA_S2MM_DMASR)
+        dma_read_reg(
+            ctx,
+            SDR_DMA_S2MM_DMASR
+        )
     );
 
 
@@ -293,7 +407,9 @@ void dma_start_s2mm(
         SDR_DMA_DMACR_IOC_IRQ_EN |
         SDR_DMA_DMACR_ERR_IRQ_EN;
 
+
     dma_write_reg(
+        ctx,
         SDR_DMA_S2MM_DMACR,
         dmacr
     );
@@ -304,6 +420,7 @@ void dma_start_s2mm(
      *-----------------------------------------------------*/
 
     dma_write_reg(
+        ctx,
         SDR_DMA_S2MM_DA,
         buffer_addr
     );
@@ -317,7 +434,10 @@ void dma_start_s2mm(
 
     printf(
         "S2MM_LENGTH before = %u\n",
-        dma_read_reg(SDR_DMA_S2MM_LENGTH)
+        dma_read_reg(
+            ctx,
+            SDR_DMA_S2MM_LENGTH
+        )
     );
 
 
@@ -326,6 +446,7 @@ void dma_start_s2mm(
      *-----------------------------------------------------*/
 
     dma_write_reg(
+        ctx,
         SDR_DMA_S2MM_LENGTH,
         length
     );
@@ -337,7 +458,10 @@ void dma_start_s2mm(
 
     printf(
         "S2MM_LENGTH immediately after write = %u\n",
-        dma_read_reg(SDR_DMA_S2MM_LENGTH)
+        dma_read_reg(
+            ctx,
+            SDR_DMA_S2MM_LENGTH
+        )
     );
 
 
@@ -356,7 +480,10 @@ void dma_start_s2mm(
 
     printf(
         "S2MM_LENGTH after 100us = %u\n",
-        dma_read_reg(SDR_DMA_S2MM_LENGTH)
+        dma_read_reg(
+            ctx,
+            SDR_DMA_S2MM_LENGTH
+        )
     );
 
 
@@ -366,22 +493,37 @@ void dma_start_s2mm(
 
     printf(
         "DMACR = 0x%08X\n",
-        dma_read_reg(SDR_DMA_S2MM_DMACR)
+        dma_read_reg(
+            ctx,
+            SDR_DMA_S2MM_DMACR
+        )
     );
+
 
     printf(
         "DMASR = 0x%08X\n",
-        dma_read_reg(SDR_DMA_S2MM_DMASR)
+        dma_read_reg(
+            ctx,
+            SDR_DMA_S2MM_DMASR
+        )
     );
+
 
     printf(
         "S2MM_DA = 0x%08X\n",
-        dma_read_reg(SDR_DMA_S2MM_DA)
+        dma_read_reg(
+            ctx,
+            SDR_DMA_S2MM_DA
+        )
     );
+
 
     printf(
         "S2MM_LENGTH = %u\n",
-        dma_read_reg(SDR_DMA_S2MM_LENGTH)
+        dma_read_reg(
+            ctx,
+            SDR_DMA_S2MM_LENGTH
+        )
     );
 }
 
@@ -390,15 +532,26 @@ void dma_start_s2mm(
  * Wait for S2MM Completion
  *=========================================================*/
 
-bool dma_wait_for_completion(uint32_t timeout_ms)
+bool dma_wait_for_completion(
+    DmaContext *ctx,
+    uint32_t timeout_ms
+)
 {
-    if (dma_regs == nullptr)
+    if (ctx == nullptr)
+    {
+        printf("DMA context is null.\n");
+        return false;
+    }
+
+
+    if (ctx->dma_regs == nullptr)
     {
         printf("DMA is not initialized.\n");
         return false;
     }
 
-    if (uio_fd < 0)
+
+    if (ctx->uio_fd < 0)
     {
         printf("UIO is not initialized.\n");
         return false;
@@ -407,12 +560,16 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
 
     struct pollfd pfd;
 
-    pfd.fd = uio_fd;
+    pfd.fd = ctx->uio_fd;
     pfd.events = POLLIN;
     pfd.revents = 0;
 
 
-    printf("Waiting for DMA IRQ...\n");
+    printf(
+        "Waiting for DMA IRQ "
+        "(Base = 0x%08X)...\n",
+        ctx->base_addr
+    );
 
 
     int ret = poll(
@@ -424,7 +581,7 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
 
     if (ret < 0)
     {
-        perror("poll(/dev/uio0)");
+        perror("poll(UIO)");
         return false;
     }
 
@@ -444,7 +601,7 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
 
 
     ssize_t n = read(
-        uio_fd,
+        ctx->uio_fd,
         &irq_count,
         sizeof(irq_count)
     );
@@ -452,13 +609,14 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
 
     if (n != sizeof(irq_count))
     {
-        perror("read(/dev/uio0)");
+        perror("read(UIO)");
         return false;
     }
 
 
     printf(
-        "DMA IRQ received. UIO count = %u\n",
+        "DMA IRQ received. "
+        "UIO count = %u\n",
         irq_count
     );
 
@@ -467,16 +625,22 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
      * Read status at the exact IRQ point.
      *-----------------------------------------------------*/
 
-    uint32_t status = dma_status();
+    uint32_t status =
+        dma_status(ctx);
+
 
     uint32_t length_at_irq =
-        dma_read_reg(SDR_DMA_S2MM_LENGTH);
+        dma_read_reg(
+            ctx,
+            SDR_DMA_S2MM_LENGTH
+        );
 
 
     printf(
         "DMASR after IRQ = 0x%08X\n",
         status
     );
+
 
     printf(
         "S2MM_LENGTH at IRQ = %u\n",
@@ -492,12 +656,15 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
     {
         printf("DMA Internal Error\n");
 
+
         dma_write_reg(
+            ctx,
             SDR_DMA_S2MM_DMASR,
             SDR_DMA_DMASR_ERR_IRQ
         );
 
-        dma_irq_enable();
+
+        dma_irq_enable(ctx);
 
         return false;
     }
@@ -507,12 +674,15 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
     {
         printf("DMA Slave Error\n");
 
+
         dma_write_reg(
+            ctx,
             SDR_DMA_S2MM_DMASR,
             SDR_DMA_DMASR_ERR_IRQ
         );
 
-        dma_irq_enable();
+
+        dma_irq_enable(ctx);
 
         return false;
     }
@@ -522,12 +692,15 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
     {
         printf("DMA Decode Error\n");
 
+
         dma_write_reg(
+            ctx,
             SDR_DMA_S2MM_DMASR,
             SDR_DMA_DMASR_ERR_IRQ
         );
 
-        dma_irq_enable();
+
+        dma_irq_enable(ctx);
 
         return false;
     }
@@ -547,7 +720,9 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
         /*
          * Clear IOC interrupt.
          */
+
         dma_write_reg(
+            ctx,
             SDR_DMA_S2MM_DMASR,
             SDR_DMA_DMASR_IOC_IRQ
         );
@@ -556,7 +731,8 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
         /*
          * Re-enable UIO interrupt.
          */
-        if (dma_irq_enable() != 0)
+
+        if (dma_irq_enable(ctx) != 0)
         {
             printf(
                 "Failed to re-enable UIO IRQ.\n"
@@ -578,7 +754,8 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
     /*
      * Make UIO ready for next interrupt.
      */
-    dma_irq_enable();
+
+    dma_irq_enable(ctx);
 
     return false;
 }
@@ -588,19 +765,27 @@ bool dma_wait_for_completion(uint32_t timeout_ms)
  * Stop S2MM
  *=========================================================*/
 
-void dma_stop_s2mm(void)
+void dma_stop_s2mm(DmaContext *ctx)
 {
-    if (dma_regs == nullptr)
-    {
+    if (ctx == nullptr)
         return;
-    }
+
+
+    if (ctx->dma_regs == nullptr)
+        return;
+
 
     dma_write_reg(
+        ctx,
         SDR_DMA_S2MM_DMACR,
         0
     );
 
-    printf("S2MM stopped.\n");
+
+    printf(
+        "S2MM stopped. Base = 0x%08X\n",
+        ctx->base_addr
+    );
 }
 
 
@@ -608,9 +793,14 @@ void dma_stop_s2mm(void)
  * Read Status
  *=========================================================*/
 
-uint32_t dma_status(void)
+uint32_t dma_status(DmaContext *ctx)
 {
+    if (ctx == nullptr)
+        return 0;
+
+
     return dma_read_reg(
+        ctx,
         SDR_DMA_S2MM_DMASR
     );
 }
@@ -620,15 +810,22 @@ uint32_t dma_status(void)
  * Print DMA Status
  *=========================================================*/
 
-void dma_print_status(void)
+void dma_print_status(DmaContext *ctx)
 {
+    if (ctx == nullptr)
+        return;
+
+
     uint32_t control =
         dma_read_reg(
+            ctx,
             SDR_DMA_S2MM_DMACR
         );
 
+
     uint32_t status =
         dma_read_reg(
+            ctx,
             SDR_DMA_S2MM_DMASR
         );
 
@@ -637,15 +834,18 @@ void dma_print_status(void)
         "\n========== AXI DMA ==========\n"
     );
 
+
     printf(
         "Base Address : 0x%08X\n",
-        SDR_DMA_BASE_ADDR
+        ctx->base_addr
     );
+
 
     printf(
         "DMACR = 0x%08X\n",
         control
     );
+
 
     printf(
         "DMASR = 0x%08X\n\n",
@@ -725,17 +925,6 @@ void dma_print_status(void)
 
 /*==========================================================
  * DMA Buffer Dump
- *
- * This is intentionally a diagnostic function.
- *
- * Requested buffer:
- *      8192 bytes
- *
- * Number of uint32 samples:
- *      2048
- *
- * We print first and last samples to determine how much
- * of the buffer was actually updated by the latest capture.
  *=========================================================*/
 
 void dma_dump_buffer(
@@ -743,12 +932,23 @@ void dma_dump_buffer(
     uint32_t length
 )
 {
-    if (dma_fd < 0)
-    {
-        printf(
-            "DMA /dev/mem is not initialized.\n"
-        );
+    /*
+     * This function uses /dev/mem only for accessing
+     * the physical DMA buffer.
+     *
+     * Since dma_fd is no longer global, open /dev/mem
+     * locally here.
+     */
 
+    int fd = open(
+        "/dev/mem",
+        O_RDWR | O_SYNC
+    );
+
+
+    if (fd < 0)
+    {
+        perror("open(/dev/mem)");
         return;
     }
 
@@ -758,7 +958,7 @@ void dma_dump_buffer(
         length,
         PROT_READ,
         MAP_SHARED,
-        dma_fd,
+        fd,
         buffer_addr
     );
 
@@ -766,6 +966,9 @@ void dma_dump_buffer(
     if (mapped_buffer == MAP_FAILED)
     {
         perror("mmap DMA buffer");
+
+        close(fd);
+
         return;
     }
 
@@ -782,15 +985,18 @@ void dma_dump_buffer(
         "\n========== DMA BUFFER ==========\n"
     );
 
+
     printf(
         "Address : 0x%08X\n",
         buffer_addr
     );
 
+
     printf(
         "Length  : %u bytes\n",
         length
     );
+
 
     printf(
         "Samples : %u\n",
@@ -813,7 +1019,9 @@ void dma_dump_buffer(
             : 16;
 
 
-    for (uint32_t i = 0; i < first_count; i++)
+    for (uint32_t i = 0;
+         i < first_count;
+         i++)
     {
         printf(
             "[%04u] 0x%08X\n",
@@ -850,14 +1058,17 @@ void dma_dump_buffer(
             buffer[i]
         );
     }
+
+
     /*------------------------------------------------------
-    * Save complete DMA buffer to binary file
-    *-----------------------------------------------------*/
+     * Save complete DMA buffer to binary file
+     *-----------------------------------------------------*/
 
     FILE *fp = fopen(
         "/tmp/dma_samples.bin",
         "wb"
     );
+
 
     if (fp == nullptr)
     {
@@ -872,16 +1083,21 @@ void dma_dump_buffer(
             fp
         );
 
+
         fclose(fp);
 
+
         printf(
-            "\nDMA samples saved to /tmp/dma_samples.bin\n"
+            "\nDMA samples saved to "
+            "/tmp/dma_samples.bin\n"
         );
+
 
         printf(
             "Samples written : %zu\n",
             written
         );
+
 
         printf(
             "Bytes written   : %zu\n",
@@ -899,37 +1115,78 @@ void dma_dump_buffer(
         mapped_buffer,
         length
     );
+
+
+    close(fd);
 }
+
+
+/*==========================================================
+ * Map DMA Buffer
+ *=========================================================*/
 
 const uint8_t *dma_map_buffer(
     uint32_t buffer_addr,
     uint32_t length
 )
 {
-    if (dma_fd < 0)
+    /*
+     * Buffer mapping is independent of a specific DMA.
+     * Open /dev/mem locally.
+     */
+
+    int fd = open(
+        "/dev/mem",
+        O_RDWR | O_SYNC
+    );
+
+
+    if (fd < 0)
     {
-        printf("DMA /dev/mem is not initialized.\n");
+        perror("open(/dev/mem)");
         return nullptr;
     }
+
 
     void *mapped_buffer = mmap(
         nullptr,
         length,
         PROT_READ,
         MAP_SHARED,
-        dma_fd,
+        fd,
         buffer_addr
     );
+
 
     if (mapped_buffer == MAP_FAILED)
     {
         perror("mmap DMA buffer");
+
+        close(fd);
+
         return nullptr;
     }
 
-    return static_cast<const uint8_t *>(mapped_buffer);
+
+    /*
+     * IMPORTANT:
+     *
+     * We cannot close fd here if we later need it for
+     * munmap only; munmap itself does not require fd.
+     */
+
+    close(fd);
+
+
+    return static_cast<const uint8_t *>(
+        mapped_buffer
+    );
 }
 
+
+/*==========================================================
+ * Unmap DMA Buffer
+ *=========================================================*/
 
 void dma_unmap_buffer(
     const uint8_t *buffer,
@@ -938,6 +1195,7 @@ void dma_unmap_buffer(
 {
     if (buffer == nullptr)
         return;
+
 
     munmap(
         const_cast<uint8_t *>(buffer),
