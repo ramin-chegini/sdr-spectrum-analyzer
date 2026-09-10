@@ -143,6 +143,7 @@ static void printHelp()
     cout << "    ./sdr_app ad9361 rx bandwidth <Hz>" << endl;
     cout << "      Range: 200 kHz to 56 MHz" << endl;
     cout << "      Step : 1 Hz" << endl;
+    cout << "RF Bandwidth of front-end analog filter in Hz, specified as a scalar from 200 kHz to 56 MHz" << endl;
 
     cout << endl;
     cout << "  RX Sample Rate:" << endl;
@@ -166,6 +167,7 @@ static void printHelp()
     cout << "    ./sdr_app ad9361 rx1 gain <dB>" << endl;
     cout << "      Range: -3 to 71 dB" << endl;
     cout << "      Step : 1 dB" << endl;
+    cout << "Channel 1 gain, specified as a scalar from -3 dB to 71 dB. The acceptable minimum and maximum gain setting depends on the center frequency" << endl;
 
     cout << endl;
     cout << "  RX1 Gain Mode / AGC:" << endl;
@@ -190,6 +192,8 @@ static void printHelp()
     cout << "    ./sdr_app ad9361 rx2 gain <dB>" << endl;
     cout << "      Range: -3 to 71 dB" << endl;
     cout << "      Step : 1 dB" << endl;
+    cout << "Channel 2 gain, specified as a scalar from -3 dB to 71 dB. The acceptable minimum and maximum gain setting depends on the center frequency" << endl;
+    
 
     cout << endl;
     cout << "  RX2 Gain Mode / AGC:" << endl;
@@ -222,7 +226,7 @@ static void printHelp()
     cout << "  TX Bandwidth:" << endl;
     cout << "    ./sdr_app ad9361 tx bandwidth" << endl;
     cout << "    ./sdr_app ad9361 tx bandwidth <Hz>" << endl;
-    cout << "      Range: 200 kHz to 40 MHz" << endl;
+    cout << "      Range: 200 kHz to 56 MHz" << endl;
     cout << "      Step : 1 Hz" << endl;
 
     cout << endl;
@@ -238,6 +242,7 @@ static void printHelp()
     cout << "    ./sdr_app ad9361 tx1 attenuation <dB>" << endl;
     cout << "      Range: -89.75 to 0 dB" << endl;
     cout << "      Step : 0.25 dB" << endl;
+    cout << "Attentuation specified as a scalar from -89.75 to 0 dB with a resolution of 0.25 dB" << endl;
 
     cout << endl;
     cout << "  TX2 Attenuation:" << endl;
@@ -245,6 +250,7 @@ static void printHelp()
     cout << "    ./sdr_app ad9361 tx2 attenuation <dB>" << endl;
     cout << "      Range: -89.75 to 0 dB" << endl;
     cout << "      Step : 0.25 dB" << endl;
+    cout << "Attentuation specified as a scalar from -89.75 to 0 dB with a resolution of 0.25 dB" << endl;
 
     cout << endl;
     cout << "  TX1 RF Port:" << endl;

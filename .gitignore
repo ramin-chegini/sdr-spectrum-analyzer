@@ -1,5 +1,6 @@
 # Build
-bin/
+bin/*
+!bin/deploy.sh
 build/
 Debug/
 Release/
