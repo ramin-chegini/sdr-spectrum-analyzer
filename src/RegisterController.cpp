@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <stdio.h>
+#include <iostream>
+
 
 RegisterController::RegisterController()
 {
@@ -250,7 +252,19 @@ void RegisterController::setACoeff2(uint32_t value)
 
 void RegisterController::setRef1(uint32_t value)
 {
-    writeRegister(REG_REF1, value & REF1_MASK);
+    uint32_t reg = value & REF1_MASK;
+
+    std::cout << "[FPGA] setRef1 value = 0x"
+              << std::hex << value
+              << " write = 0x"
+              << reg
+              << std::dec << std::endl;
+
+    writeRegister(REG_REF1, reg);
+
+    std::cout << "[FPGA] REG_REF1 readback = 0x"
+              << std::hex << readRegister(REG_REF1)
+              << std::dec << std::endl;
 }
 
 void RegisterController::setRef2(uint32_t value)

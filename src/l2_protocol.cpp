@@ -10,26 +10,13 @@
 #include <net/if.h>
 #include <linux/if_packet.h>
 #include <linux/if_ether.h>
+
 #include <arpa/inet.h>
 
-//---------------------------------------------------------------------
-// L2 TX - Send packet to GUI
-//---------------------------------------------------------------------
 
-/*
- * L2 TX Frame Format
- *
- * Offset   Size       Field
- * ------   --------   ----------------
- * 0        6          Destination MAC
- * 6        6          Source MAC
- * 12       2          EtherType
- * 14       2          Custom ID
- * 16       N          Payload
- * 16+N     8          Footer
- *
- * Total Frame Size = 16 + Payload Length + 8
- */
+// ============================================================================
+// L2 TX - Send packet to GUI
+// ============================================================================
 
 bool l2_send_packet(
     const char *interface_name,
@@ -38,252 +25,57 @@ bool l2_send_packet(
     const uint8_t *payload,
     uint16_t payload_len)
 {
-
-    unsigned char dst_mac[6] =  // usb0 Dest.Mac Addr
+    unsigned char dst_mac[6] =
     {
-        0x02,0xAA,0xBB,0xCC,0xDD,0xEE
+        // 0x02, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF   
     };
 
-    // unsigned char dst_mac[6] =  // eth0 Dest.Mac Addr
-    // {
-    //     0xC8,0x7F,0x54,0xA7,0xDD,0x16
-    // };    
-
-
-    unsigned char src_mac[6] =     // usb0 Src.Mac Addr
+    unsigned char src_mac[6] =
     {
-        0x02,0x11,0x22,0x33,0x44,0x55
+        // 0x02, 0x11, 0x22, 0x33, 0x44, 0x55
+        0x5A, 0x01, 0x02, 0x03, 0x04, 0x05        
     };
-
-    // unsigned char src_mac[6] =   // eth0 Src.Mac Addr
-    // {
-    //     0x00, 0x0A, 0x35, 0x00, 0x1E, 0x53
-    // };    
-
 
     unsigned char frame[L2_MAX_FRAME_SIZE];
 
-    memset(frame,0,sizeof(frame));
+    memset(frame, 0, sizeof(frame));
 
-
-    // if((size_t)payload_len + 16 + L2_FOOTER_SIZE > sizeof(frame))
-    // {
-    //     printf("Payload too large\n");
-    //     return false;
-    // }
-
-    if(payload_len > L2_MAX_PAYLOAD_SIZE)
+    if (payload_len > L2_MAX_PAYLOAD_SIZE)
     {
-        printf("Payload too large: %u bytes (max %u)\n",
+        printf(
+            "Payload too large: %u bytes (max %u)\n",
             payload_len,
             L2_MAX_PAYLOAD_SIZE);
-
         return false;
     }
-    
 
-    /*
-     * Ethernet Header
-     */
-
-    memcpy(frame,
-           dst_mac,
-           6);
-
-
-    memcpy(frame + 6,
-           src_mac,
-           6);
-
-
-    /*
-     * EtherType
-     */
+    memcpy(frame, dst_mac, 6);
+    memcpy(frame + 6, src_mac, 6);
 
     uint16_t net_eth_type = htons(eth_type);
-
-    memcpy(frame + 12,
-           &net_eth_type,
-           2);
-
-
-    /*
-     * Custom ID
-     */
+    memcpy(frame + 12, &net_eth_type, 2);
 
     uint16_t net_id = htons(id);
+    memcpy(frame + 14, &net_id, 2);
 
-    memcpy(frame + 14,
-           &net_id,
-           2);
+    memcpy(frame + 16, payload, payload_len);
 
+    memcpy(
+        frame + 16 + payload_len,
+        L2_FOOTER,
+        L2_FOOTER_SIZE);
 
-    /*
-     * Payload
-     */
+    int frame_len =
+        16 +
+        payload_len +
+        L2_FOOTER_SIZE;
 
-    memcpy(frame + 16,
-           payload,
-           payload_len);
-
-
-    /*
-     * Company Footer
-     */
-
-    memcpy(frame + 16 + payload_len,
-           L2_FOOTER,
-           L2_FOOTER_SIZE);
-
-
-
-    int frame_len = 16 + payload_len + L2_FOOTER_SIZE;
-
-
-
-    int sock = socket(AF_PACKET,
-                     SOCK_RAW,
-                     htons(ETH_P_ALL));
-
-
-    if(sock < 0)
-    {
-        perror("socket");
-        return false;
-    }
-
-
-
-    struct ifreq ifr;
-
-    memset(&ifr,0,sizeof(ifr));
-
-
-    strncpy(ifr.ifr_name,
-            interface_name,
-            IFNAMSIZ-1);
-
-
-
-    if(ioctl(sock,
-             SIOCGIFINDEX,
-             &ifr)<0)
-    {
-        perror("interface");
-        close(sock);
-        return false;
-    }
-
-
-
-    struct sockaddr_ll addr;
-
-    memset(&addr,0,sizeof(addr));
-
-
-    addr.sll_ifindex = ifr.ifr_ifindex;
-
-    addr.sll_halen = ETH_ALEN;
-
-
-    memcpy(addr.sll_addr,
-           dst_mac,
-           6);
-
-
-
-    int ret = sendto(sock,
-                     frame,
-                     frame_len,
-                     0,
-                     (struct sockaddr*)&addr,
-                     sizeof(addr));
-
-
-
-    close(sock);
-
-
-
-    if(ret < 0)
-    {
-        perror("sendto");
-        return false;
-    }
-
-
-    printf("L2 frame sent: %d bytes\n",
-           frame_len);
-
-
-    return true;
-}
-
-
-//---------------------------------------------------------------------
-// L2 RX - Receive configuration packet from GUI
-//---------------------------------------------------------------------
-
-/*
- * L2 RX Frame Format
- *
- * Offset   Size       Field
- * ------   --------   ----------------
- * 0        6          Destination MAC
- * 6        6          Source MAC
- * 12       2          Packet Length = 0x000D
- * 14       2          FPGA ID       = 0x0282
- * 16       1          Register Address = (0-255)
- * 17       8          Data
- * 25       2          Footer = 0x0016
- *
- * Total Frame Size = 27 Bytes
- */
-
-
-/*
- * =====================================================
- * L2 RX Listener Constructor
- * =====================================================
- */
-
-L2RxListener::L2RxListener()
-    : sock(-1),
-      expected_packet_len(0)
-{
-}
-
-
-/*
- * =====================================================
- * L2 RX Listener Destructor
- * =====================================================
- */
-
-L2RxListener::~L2RxListener()
-{
-    close();
-}
-
-
-/*
- * =====================================================
- * L2 RX Listener Open
- *
- * Creates and binds the Layer-2 socket once.
- * =====================================================
- */
-
-bool L2RxListener::open(
-    const char *interface_name,
-    uint16_t packet_len)
-{
-    expected_packet_len = packet_len;
-
-    sock = socket(
-        AF_PACKET,
-        SOCK_RAW,
-        htons(ETH_P_ALL));
+    int sock =
+        socket(
+            AF_PACKET,
+            SOCK_RAW,
+            htons(ETH_P_ALL));
 
     if (sock < 0)
     {
@@ -291,20 +83,13 @@ bool L2RxListener::open(
         return false;
     }
 
-
     struct ifreq ifr;
-
-    memset(
-        &ifr,
-        0,
-        sizeof(ifr));
-
+    memset(&ifr, 0, sizeof(ifr));
 
     strncpy(
         ifr.ifr_name,
         interface_name,
         IFNAMSIZ - 1);
-
 
     if (ioctl(
             sock,
@@ -312,30 +97,148 @@ bool L2RxListener::open(
             &ifr) < 0)
     {
         perror("interface");
+        close(sock);
+        return false;
+    }
 
+    struct sockaddr_ll addr;
+    memset(&addr, 0, sizeof(addr));
+
+    addr.sll_ifindex = ifr.ifr_ifindex;
+    addr.sll_halen = ETH_ALEN;
+
+    memcpy(addr.sll_addr, dst_mac, 6);
+
+    int ret =
+        sendto(
+            sock,
+            frame,
+            frame_len,
+            0,
+            (struct sockaddr *)&addr,
+            sizeof(addr));
+
+    close(sock);
+
+    if (ret < 0)
+    {
+        perror("sendto");
+        return false;
+    }
+
+    printf(
+        "L2 frame sent: %d bytes\n",
+        frame_len);
+
+    return true;
+}
+
+
+// ============================================================================
+// L2 RX - Persistent Listener
+// ============================================================================
+
+L2RxListener::L2RxListener()
+    : sock(-1),
+      expected_packet_len(0)
+{
+}
+
+L2RxListener::~L2RxListener()
+{
+    close();
+}
+
+
+// ============================================================================
+// Open
+// ============================================================================
+
+bool L2RxListener::open(
+    const char *interface_name,
+    uint16_t packet_len)
+{
+    expected_packet_len = packet_len;
+
+    sock =
+        socket(
+            AF_PACKET,
+            SOCK_RAW,
+            htons(ETH_P_ALL));
+
+    if (sock < 0)
+    {
+        perror("socket");
+        return false;
+    }
+
+    struct ifreq ifr;
+    memset(&ifr, 0, sizeof(ifr));
+
+    strncpy(
+        ifr.ifr_name,
+        interface_name,
+        IFNAMSIZ - 1);
+
+    if (ioctl(
+            sock,
+            SIOCGIFINDEX,
+            &ifr) < 0)
+    {
+        perror("interface");
         close();
-
         return false;
     }
 
 
+    // ------------------------------------------------------------------------
+    // Enable promiscuous mode only for eth0
+    //
+    // The GUI sends frames to:
+    //     5A:01:02:03:04:05
+    //
+    // while the real eth0 MAC is:
+    //     00:0A:35:00:1E:53
+    //
+    // Therefore eth0 must accept frames not addressed to its own MAC.
+    // ------------------------------------------------------------------------
+
+    if (strcmp(interface_name, "eth0") == 0)
+    {
+        struct packet_mreq mr;
+        memset(&mr, 0, sizeof(mr));
+
+        mr.mr_ifindex = ifr.ifr_ifindex;
+        mr.mr_type = PACKET_MR_PROMISC;
+
+        if (setsockopt(
+                sock,
+                SOL_PACKET,
+                PACKET_ADD_MEMBERSHIP,
+                &mr,
+                sizeof(mr)) < 0)
+        {
+            perror("PACKET_MR_PROMISC");
+            close();
+            return false;
+        }
+
+        printf(
+            "[L2 RX] Promiscuous mode enabled on %s.\n",
+            interface_name);
+    }
+
+
+    // ------------------------------------------------------------------------
+    // Bind socket to selected interface
+    // ------------------------------------------------------------------------
+
     struct sockaddr_ll bind_addr;
+    memset(&bind_addr, 0, sizeof(bind_addr));
 
-    memset(
-        &bind_addr,
-        0,
-        sizeof(bind_addr));
-
-
-    bind_addr.sll_family =
-        AF_PACKET;
-
-    bind_addr.sll_protocol =
-        htons(ETH_P_ALL);
-
-    bind_addr.sll_ifindex =
-        ifr.ifr_ifindex;
-
+    bind_addr.sll_family = AF_PACKET;
+    bind_addr.sll_protocol = htons(ETH_P_ALL);
+    bind_addr.sll_ifindex = ifr.ifr_ifindex;
 
     if (bind(
             sock,
@@ -343,54 +246,35 @@ bool L2RxListener::open(
             sizeof(bind_addr)) < 0)
     {
         perror("bind");
-
         close();
-
         return false;
     }
-
 
     return true;
 }
 
 
-/*
- * =====================================================
- * L2 RX Listener Receive
- *
- * Waits for the next valid GUI packet.
- *
- * The socket remains open after receive().
- * =====================================================
- */
+// ============================================================================
+// Receive
+// ============================================================================
 
 bool L2RxListener::receive(
     uint16_t *fpga_id,
-    uint8_t *reg_addr,
-    uint8_t *data)
+    uint8_t *command)
 {
     if (sock < 0)
     {
         return false;
     }
 
-
     unsigned char frame[L2_MAX_FRAME_SIZE];
-
 
     while (true)
     {
         struct sockaddr_ll addr;
+        memset(&addr, 0, sizeof(addr));
 
-        memset(
-            &addr,
-            0,
-            sizeof(addr));
-
-
-        socklen_t addr_len =
-            sizeof(addr);
-
+        socklen_t addr_len = sizeof(addr);
 
         int frame_len =
             recvfrom(
@@ -401,38 +285,38 @@ bool L2RxListener::receive(
                 (struct sockaddr *)&addr,
                 &addr_len);
 
-
         if (frame_len < 0)
         {
             perror("recvfrom");
-
             return false;
         }
 
 
-        /*
-         * =================================================
-         * Ethernet Header
-         * =================================================
-         */
+        // --------------------------------------------------------------------
+        // Ethernet header check
+        // --------------------------------------------------------------------
 
         if (frame_len < L2_ETH_HEADER_SIZE)
         {
             printf(
                 "Ignoring short Ethernet frame: %d bytes\n",
                 frame_len);
-
             continue;
         }
 
 
-        /*
-         * =================================================
-         * Packet Length
-         *
-         * Offset 12..13
-         * =================================================
-         */
+        // --------------------------------------------------------------------
+        // Custom protocol packet length
+        //
+        // Bytes 12..13 contain the logical protocol length.
+        // GUI sends:
+        //
+        //     00 0D
+        //
+        // which means 13 bytes.
+        //
+        // The complete logical L2 protocol frame is still 27 bytes.
+        // --------------------------------------------------------------------
 
         uint16_t net_packet_len;
 
@@ -441,22 +325,8 @@ bool L2RxListener::receive(
             frame + 12,
             2);
 
-
         uint16_t packet_len =
             ntohs(net_packet_len);
-
-
-        /*
-         * =================================================
-         * Ignore unrelated Ethernet traffic
-         *
-         * Example:
-         *
-         * IPv4 = 0x0800
-         *
-         * No log is printed here.
-         * =================================================
-         */
 
         if (packet_len != expected_packet_len)
         {
@@ -464,31 +334,34 @@ bool L2RxListener::receive(
         }
 
 
-        /*
-         * =================================================
-         * Validate complete GUI packet
-         * =================================================
-         */
+        // --------------------------------------------------------------------
+        // Ethernet minimum frame size / padding
+        //
+        // The GUI sends a 27-byte logical frame.
+        // Linux AF_PACKET may deliver it as a 60-byte Ethernet frame
+        // because Ethernet minimum frame size is 60 bytes without FCS.
+        //
+        // Therefore:
+        //
+        //     DO NOT require frame_len == 27
+        //
+        // Accept 27 bytes or larger.
+        // --------------------------------------------------------------------
 
-        if (frame_len != L2_RX_FRAME_SIZE)
+        if (frame_len < L2_RX_FRAME_SIZE)
         {
             printf(
                 "Invalid L2 RX frame size: %d bytes "
-                "(expected %d)\n",
+                "(minimum %d)\n",
                 frame_len,
                 L2_RX_FRAME_SIZE);
-
             continue;
         }
 
 
-        /*
-         * =================================================
-         * FPGA ID
-         *
-         * Offset 14..15
-         * =================================================
-         */
+        // --------------------------------------------------------------------
+        // FPGA ID
+        // --------------------------------------------------------------------
 
         uint16_t net_fpga_id;
 
@@ -497,104 +370,64 @@ bool L2RxListener::receive(
             frame + 14,
             2);
 
-
         uint16_t rx_fpga_id =
             ntohs(net_fpga_id);
 
 
-        /*
-         * =================================================
-         * Register Address
-         *
-         * Offset 16
-         * =================================================
-         */
+        // --------------------------------------------------------------------
+        // Command
+        // --------------------------------------------------------------------
 
-        uint8_t rx_reg_addr =
-            frame[16];
-
-
-        /*
-         * =================================================
-         * Data
-         *
-         * Offset 17..24
-         * =================================================
-         */
-
-        if (data != NULL)
+        if (command != NULL)
         {
             memcpy(
-                data,
-                frame + 17,
-                L2_RX_DATA_SIZE);
+                command,
+                frame + L2_RX_COMMAND_OFFSET,
+                L2_RX_COMMAND_SIZE);
         }
 
 
-        /*
-         * =================================================
-         * Footer
-         *
-         * Offset 25..26
-         * =================================================
-         */
+        // --------------------------------------------------------------------
+        // Command terminator
+        // --------------------------------------------------------------------
 
-        if (memcmp(
-                frame + 25,
-                L2_RX_FOOTER,
-                L2_RX_FOOTER_SIZE) != 0)
+        if (frame[
+                L2_RX_COMMAND_OFFSET +
+                L2_RX_COMMAND_SIZE -
+                1] != 0x16)
         {
             printf(
-                "Invalid L2 RX footer\n");
-
+                "Invalid L2 RX command terminator\n");
             continue;
         }
 
 
-        /*
-         * =================================================
-         * Return decoded values
-         * =================================================
-         */
+        // --------------------------------------------------------------------
+        // Return FPGA ID
+        // --------------------------------------------------------------------
 
         if (fpga_id != NULL)
         {
-            *fpga_id =
-                rx_fpga_id;
+            *fpga_id = rx_fpga_id;
         }
 
 
-        if (reg_addr != NULL)
-        {
-            *reg_addr =
-                rx_reg_addr;
-        }
-
+        // --------------------------------------------------------------------
+        // Successful reception
+        // --------------------------------------------------------------------
 
         printf(
-            "L2 RX packet received: %d bytes\n",
+            "L2 RX command received: %d bytes\n",
             frame_len);
-
-
-        /*
-         * IMPORTANT:
-         *
-         * Do NOT close the socket here.
-         *
-         * The socket remains open for the
-         * next GUI command.
-         */
 
         return true;
     }
 }
 
 
-/*
- * =====================================================
- * L2 RX Listener Close
- * =====================================================
- */
+// ============================================================================
+// Close
+// ============================================================================
 
 void L2RxListener::close()
 {
@@ -606,22 +439,15 @@ void L2RxListener::close()
 }
 
 
-/*
- * =====================================================
- * Legacy One-Shot L2 RX
- *
- * Kept for compatibility/debug.
- *
- * Socket is opened for one packet and then closed.
- * =====================================================
- */
+// ============================================================================
+// L2 RX - One Shot Receive
+// ============================================================================
 
 bool l2_receive_packet(
     const char *interface_name,
     uint16_t expected_packet_len,
     uint16_t *fpga_id,
-    uint8_t *reg_addr,
-    uint8_t *data)
+    uint8_t *command)
 {
     L2RxListener listener;
 
@@ -632,16 +458,12 @@ bool l2_receive_packet(
         return false;
     }
 
-
     bool result =
         listener.receive(
             fpga_id,
-            reg_addr,
-            data);
-
+            command);
 
     listener.close();
-
 
     return result;
 }

@@ -1,0 +1,18 @@
+Soft_Reset = 1bit
+Bandwidth_Select = 4bits
+Soft_Start = 1bit
+Leds_timer-freq_sys = 32bits
+Send_Packet = 1bit
+Mod_Enable = 1bit
+Mode_Select = 8bits
+Amp_OK = 1bit
+Squelch_Enable = 1bit
+MGC2_On = 1bit
+AGC1_On = 1bit
+AGC2_On = 1bit
+Msg_Value = 32bits
+A_Coeff1 = 8bits
+A_Coeff2 = 8bits
+Ref1 = 24bits
+Ref2 = 24bits
+

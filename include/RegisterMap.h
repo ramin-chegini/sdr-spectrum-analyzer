@@ -69,7 +69,16 @@ bit 8  Amp_OK*/
 
 /* MODE Register */
 
-#define MODE_SELECT_MASK      0x000000FF
+/* MODE Register */
+
+/*
+ * bit 15:8  Mode_Select
+ *
+ * 0x00 = AM
+ * 0x01 = FM
+ * 0x02 = PM
+ */
+#define MODE_SELECT_MASK 0x000000FF
 
 /* COEFFICIENTS Register */
 

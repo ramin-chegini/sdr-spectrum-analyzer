@@ -16,19 +16,40 @@ if [ ! -f "$LOCAL_PATH" ]; then
     exit 1
 fi
 
-echo "[1/3] Stopping sdr_app..."
-ssh "$TARGET" "killall sdr_app 2>/dev/null || true"
+echo "[1/4] Stopping sdr-app..."
+ssh "$TARGET" "sdr-app stop"
 
-echo "[2/3] Copying sdr_app..."
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to stop sdr-app!"
+    exit 1
+fi
+
+echo "[2/4] Copying sdr_app..."
 scp "$LOCAL_PATH" "$TARGET:$REMOTE_PATH"
 
 if [ $? -ne 0 ]; then
     echo "ERROR: Deploy failed!"
+    echo "Starting previous sdr_app instance..."
+    ssh "$TARGET" "sdr-app start"
     exit 1
 fi
 
-echo "[3/3] Setting executable permission..."
+echo "[3/4] Setting executable permission..."
 ssh "$TARGET" "chmod +x $REMOTE_PATH"
+
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to set executable permission!"
+    ssh "$TARGET" "sdr-app start"
+    exit 1
+fi
+
+echo "[4/4] Starting sdr-app..."
+ssh "$TARGET" "sdr-app start"
+
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to start sdr-app!"
+    exit 1
+fi
 
 echo ""
 echo "======================================"

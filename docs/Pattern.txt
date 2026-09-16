@@ -1,0 +1,60 @@
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setSoftReset()  == 01 = high and  00= low
+06 00 00 00 00 00 00 00 01 00 16  
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setSoftStart()  == 01 = high and  00= low
+10 00 00 00 00 00 00 00 01 00 16
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setSendPacket() == 01 = high and  00= low
+56 00 00 00 00 00 00 00 01 00 16  
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setLedTimer() 
+4B 00 00 00 00 00 1F CA 0C 00 16        
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setModEnable()
+03 00 00 00 95 00 00 00 20 00 16     
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setModeSelect() ==>  0x00 ==> AM  ==> Addr [15: 8]
+03 00 00 00 85 00 00 00 00 00 16 
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setModeSelect() ==>  0x01 ==> fm  ==> Addr [15: 8] 
+03 00 00 00 85 00 00 01 00 00 16   
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setModeSelect() ==>  0x02 ==> pm  ==> Addr [15: 8] 
+03 00 00 00 85 00 00 02 00 00 16  
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setSquelchEnable(true) ===>    setSquelchEnable =true and  setAGC2On => true and  setModEnable => true
+03 00 00 00 95 00 00 00 34 00 16
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setSquelchEnable(false) ===>    setSquelchEnable =false and  setAGC2On => true  and  setModEnable => true
+03 00 00 00 95 00 00 00 24 00 16 
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setMGC2On()
+03 00 00 00 95 00 00 00 08 00 16 
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setAGC1On()
+03 00 00 00 95 00 00 00 01 00 16 
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setAGC2On()
+03 00 00 00 95 00 00 00 04 00 16 
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setMsgValue()  
+03 00 00 00 96 00 00 00 00 00 16 
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setRef1()    ===> [23 : 0]  
+03 00 00 00 93 00 XX XX XX 00 16
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setACoeff1()    ===> [31 : 24]  
+03 00 00 00 93 XX 00 00 00 00 16 
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setRef2()    ===> [23 : 0]  
+03 00 00 00 94 00 XX XX XX 00 16 
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setACoeff2()    ===> [31 : 24]  
+03 00 00 00 94 XX 00 00 00 00 16 
+
+5a 01 02 03 04 05 ec a8 68 f4 fc 41 00 0d 02 82     ====> setBandwidth()  xx ==> 0x01==200K , 0x02==150K , 0x03==60K , 0x04==30K , 0x05==15K , 0x06==12K , 0x07==7.5K , 0x08==5K , 0x09==3K , 0x0A==1.2K  , 0x0B==600Hz 
+03 00 00 00 90 00 00 00 xx 00 16                    
+
+
+                

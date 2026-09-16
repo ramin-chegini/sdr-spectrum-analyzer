@@ -1,6 +1,6 @@
 CXX = arm-linux-gnueabihf-g++
 
-CXXFLAGS = -Wall -O2 -std=c++17
+CXXFLAGS = -Wall -O2 -std=c++17 -pthread
 
 LIBIIO_INC = third_party/libiio/include
 LIBIIO_LIB = third_party/libiio/lib
@@ -19,8 +19,9 @@ src/RegisterController.cpp \
 src/dma.cpp \
 src/ad9361.cpp \
 src/adi_iio_capture.cpp \
+src/audio_handler.cpp \
 src/l2_protocol.cpp \
-src/CommandDispatcher.cpp 
+src/CommandDispatcher.cpp
 
 OUT = bin/sdr_app
 
