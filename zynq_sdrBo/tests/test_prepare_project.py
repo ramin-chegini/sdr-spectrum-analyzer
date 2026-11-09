@@ -18,9 +18,9 @@ SPEC.loader.exec_module(PREPARE)
 
 @contextmanager
 def scratch():
-    base = SOURCE.parent / "build/petalinux-staging-tests"
+    base = SOURCE.parent / "build/t"
     base.mkdir(parents=True, exist_ok=True)
-    folder = base / uuid.uuid4().hex
+    folder = base / uuid.uuid4().hex[:8]
     folder.mkdir()
     try:
         yield folder
@@ -44,7 +44,7 @@ class PrepareProjectTests(unittest.TestCase):
         dts_rel = Path("project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi")
         original_dts = (SOURCE / dts_rel).read_bytes()
         with scratch() as folder:
-            for name in ("first-workspace", "relocated-workspace"):
+            for name in ("a", "b"):
                 output = folder / name
                 paths = {item["name"]: output / "sources" / item["name"] for item in lock["dependencies"]}
                 hashes = PREPARE.stage_snapshot(SOURCE, output, SOURCE.parent / "sdr_app", lock,
