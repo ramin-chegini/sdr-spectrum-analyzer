@@ -15,7 +15,7 @@ application together, with the ADI HDL needed by the hardware stored locally.
 | --- | --- | --- |
 | FPGA design and local IP repositories | [P201Pro](P201Pro/README.md) | Bitstream generation confirmed by the project owner in Ubuntu / Vivado 2019.2 |
 | Embedded C++ control and capture application | [sdr_app](sdr_app/README.md) | Current working sources imported, including WAVE capture and SINAD commands |
-| PetaLinux project | Future import | Existing project uses PetaLinux 2019.2; its sources are not included yet |
+| PetaLinux project | [zynq_sdrBo](zynq_sdrBo/README.md) | Source inputs and preparation scripts ready; new image build and board boot pending |
 | Host GUI / receiver | External | Not included in this repository |
 
 Bitstream generation was reported successful on **2026-11-09**. This confirms
@@ -56,6 +56,11 @@ sdr_app/
   third_party/libiio/       Supplied ARM library, header and license files
   bin/deploy.sh             Deployment helper
   docs/                     Service helper, protocol notes and captures
+zynq_sdrBo/
+  project-spec/             PetaLinux configuration and custom user layer
+  hardware/                 Original XSA snapshot
+  dependencies.lock.json    Locked ADI source revisions
+  scripts/                  Separate workspace preparation and checks
 ```
 
 Earlier repository revisions kept the application at the root. It now lives in
@@ -110,12 +115,23 @@ operations require the corresponding permissions, typically root on the target.
 See the [application guide](sdr_app/README.md) for deployment, audio commands,
 register addresses and packet formats.
 
-## Next import
+## Prepare the Linux workspace
 
-The next repository addition is the existing PetaLinux 2019.2 project, including
-its configuration, device tree changes and user recipes. Generated root filesystems,
-downloads and build caches should remain outside the source repository. Until
-that import is complete, this repository alone does not recreate the Linux image.
+The [PetaLinux guide](zynq_sdrBo/README.md) and
+[Persian instructions](zynq_sdrBo/README.fa.md) describe recreating the original
+PetaLinux 2019.2 inputs in a separate Ubuntu workspace. The preparation script
+checks out pinned ADI dependencies, imports an explicitly selected XSA, preserves
+custom configuration/DTS inputs and stages the current application for compilation
+by its BitBake recipe. Standard Yocto downloads/caches are still needed.
+
+```bash
+python3 zynq_sdrBo/scripts/check_project.py
+python3 -m unittest discover -s zynq_sdrBo/tests -v
+```
+
+Preparation/staging tests pass locally. The new PetaLinux image build, matching
+hardware handoff and board boot still need validation on Ubuntu 18.04; a Linux
+image result is not implied by the earlier FPGA bitstream result.
 
 ## Third-party code
 

@@ -1,0 +1,16 @@
+#Note: Mention Each package in individual line
+
+#These packages will get added into rootfs menu entry
+
+CONFIG_gpio-demo
+CONFIG_peekpoke
+CONFIG_libiio
+CONFIG_libiio-iiod
+CONFIG_libiio-tests
+CONFIG_libad9361-iio
+CONFIG_libxml2
+CONFIG_python3-numpy
+CONFIG_htop
+CONFIG_nano
+CONFIG_rndis
+CONFIG_sdr-app

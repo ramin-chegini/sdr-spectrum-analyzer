@@ -1,0 +1,308 @@
+{
+  "date": "2026-11-09",
+  "status": "prepared for Ubuntu validation; no fresh PetaLinux build or boot is claimed",
+  "owner_confirmed_no_manual_kernel_source_changes": true,
+  "kernel_windows_worktree_artifacts": {
+    "missing_symlinks": 35,
+    "reserved_aux_paths": 3,
+    "case_collisions": 13
+  },
+  "preserved_inputs": [
+    {
+      "path": ".petalinux/metadata",
+      "normalize_lf": true,
+      "sha256": "ae0cd6e5f2c6d676490516bfc550f6b50661b64ae80c6ffe0e94e9c34e9c3eab"
+    },
+    {
+      "path": "config.project",
+      "normalize_lf": true,
+      "sha256": "56bde21a486b268b35689813016a1e6073fc5cfe89aa670e54a079516b832057"
+    },
+    {
+      "path": "docs/original-final-kernel.config",
+      "normalize_lf": true,
+      "sha256": "c50f6a1cfb89ed24051037890326896021994930ff9a03e6a033e5b66701312c"
+    },
+    {
+      "path": "hardware/system.xsa",
+      "normalize_lf": false,
+      "sha256": "a09ca4cb62682b40f11b77d9168a737e4888af58836bf500925ac1bb14012c2a"
+    },
+    {
+      "path": "project-spec/attributes",
+      "normalize_lf": true,
+      "sha256": "007ddd3abc471bb94115599fb45eb022960fcfb4d81332f8bcf3c62e6088cc55"
+    },
+    {
+      "path": "project-spec/configs/rootfs_config",
+      "normalize_lf": true,
+      "sha256": "feef396efbc1cf3fab8392131a667dcc04902a3d65adbdbffe299c04fcf3429e"
+    },
+    {
+      "path": "project-spec/meta-user/COPYING.MIT",
+      "normalize_lf": true,
+      "sha256": "89807acf2309bd285f033404ee78581602f3cd9b819a16ac2f0e5f60ff4a473e"
+    },
+    {
+      "path": "project-spec/meta-user/README",
+      "normalize_lf": true,
+      "sha256": "b560ff187bdb50f89a69e347f89ef64b529c0c2250b68dd495f45d55519030d1"
+    },
+    {
+      "path": "project-spec/meta-user/conf/layer.conf",
+      "normalize_lf": true,
+      "sha256": "4dd65ee33802b86cc0bcc6f979c88e5d06b2f7ee627d18739d8264811feb6d43"
+    },
+    {
+      "path": "project-spec/meta-user/conf/petalinuxbsp.conf",
+      "normalize_lf": true,
+      "sha256": "664b52217e2ba500ed3273e148a4c45586b46a87163af6a13d617092bc2c58e8"
+    },
+    {
+      "path": "project-spec/meta-user/conf/user-rootfsconfig",
+      "normalize_lf": true,
+      "sha256": "9d84768c526368b78b1bc721fb7c7dbb632c65c9d8ef1ca83de818c7ac1c8ee2"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-apps/gpio-demo/files/Makefile",
+      "normalize_lf": true,
+      "sha256": "d1109cef86ae07e6f4269eabbb8c46d704b728395546889a4d06dda3a2c5306c"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-apps/gpio-demo/files/gpio-demo.c",
+      "normalize_lf": true,
+      "sha256": "0ba0b90c5119b9eed6acdab2b518dbdcab0b2155907bfad197776c84be4ad0f9"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-apps/gpio-demo/gpio-demo.bb",
+      "normalize_lf": true,
+      "sha256": "f4684e1fbfcaac84a488fd7b01cb88096cac427b60ec370f65142d157dea3f6b"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-apps/peekpoke/files/Makefile",
+      "normalize_lf": true,
+      "sha256": "91bdd3609a1232d4c6f376c36f1de3a8d4d48b85e761ad55dff8bf6ec4faaebd"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-apps/peekpoke/files/peek.c",
+      "normalize_lf": true,
+      "sha256": "8c3daa614bb752fdfd1f0af2330c026561e2961e0275ee60f4b1bee73b15b05f"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-apps/peekpoke/files/poke.c",
+      "normalize_lf": true,
+      "sha256": "7aeee9adf6c1fe4756aac129110e0b25c227e24f8813bbf9749bd8364f494a13"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-apps/peekpoke/peekpoke.bb",
+      "normalize_lf": true,
+      "sha256": "89437d01d5350c5937b53bb87bbf0673714ac27d36adf212b1b7e230c0cbac5e"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-apps/rndis/.gdbinit",
+      "normalize_lf": true,
+      "sha256": "a745d7d08be45dc5a2908741a17b0bc5f6f0170e73b8795a21d86bac31684202"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-apps/rndis/README",
+      "normalize_lf": true,
+      "sha256": "7011b2bc34008966bb3aada2788b8d6143980bc3177588da27cfaeedf7bb84d4"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-apps/rndis/files/rndis",
+      "normalize_lf": true,
+      "sha256": "c32bfbae1891ce1f4951af03d040def35eb4c9f1e6fbf78153169cc2599956f0"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-apps/rndis/rndis.bb",
+      "normalize_lf": true,
+      "sha256": "3dd008e20b8f8c0157af39957813b2ed3ac78eb77e141b8ff6a0a201745debe5"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-apps/sdr-app/files/sdr-app",
+      "normalize_lf": true,
+      "sha256": "b7b0cd1c4aba3a564dcef03217b684793fbf101515d50d27e54fddb61ade54c6"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-bsp/device-tree/device-tree.bbappend",
+      "normalize_lf": true,
+      "sha256": "a27884b1c6e9995c15e7a51ff14efa9e68bf4a0ec78a65e60b6a411927d8f68f"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-bsp/device-tree/files/pl-custom.dtsi",
+      "normalize_lf": true,
+      "sha256": "ae388d8bfaa77da0725f5d82061084b7dbd1720b6d4b2cf641cc7d1e3c553e25"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi",
+      "normalize_lf": true,
+      "sha256": "3f7a2852673008632ad3a02e51bada95400d45d2035f9da6a0139820b5565715"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-bsp/u-boot/files/platform-top.h",
+      "normalize_lf": true,
+      "sha256": "a25812975451abe4da6c44df01259a3f94af800d2e8d7151129fd5809a268cf2"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-bsp/u-boot/u-boot-xlnx_%.bbappend",
+      "normalize_lf": true,
+      "sha256": "8321cf216d5722853088513f30e1a011a88b18b65adb06018580d62511d80f1a"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-core/images/petalinux-user-image.bbappend",
+      "normalize_lf": true,
+      "sha256": "1b6cbe6cd12363f8e997cdb35aec769fa4940fa387448029528c8375b95f38e5"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/Makefile",
+      "normalize_lf": true,
+      "sha256": "2405e68ef7fef0c352182ed2e2e6aa555d28f748632d3a2aea7002aa8c6a5df9"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/Mykonos_M3.bin",
+      "normalize_lf": false,
+      "sha256": "78544ba514ed296d521d9acbef9002d716908c05375a30029501ef14feb6b33d"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/Navassa_CMOS_profile.json",
+      "normalize_lf": true,
+      "sha256": "3ccb0f6eb691a7041107b3b62dd731385569d623a40a580555d9b4ebe7c32966"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/Navassa_EvaluationFw.bin",
+      "normalize_lf": false,
+      "sha256": "5b4542db06df7c070a68337e98209fb0e86288c7bcf9d7770d020f00d1d4b0aa"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/Navassa_LVDS_profile.json",
+      "normalize_lf": true,
+      "sha256": "517e5c12d91cf8e496c00a2365d1be6eb194513fc10597191faac229a9a4a34c"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/Navassa_Stream.bin",
+      "normalize_lf": false,
+      "sha256": "470f5c8b6f7aae88e0512987d7c9f8b367b501bf1c5ee8ed0861e3c1b43fc449"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/ORxGainTable.csv",
+      "normalize_lf": true,
+      "sha256": "165bcd8250742bbb03879cef4443f3da61d0be98003d4089f138917199dba66e"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/RxGainTable.csv",
+      "normalize_lf": true,
+      "sha256": "dbf9942d86ccde3c598217bb4e9e075c50dcc9e6c825b10da76271cf943c2ea1"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/TALISE_FIRMWARE_SOFTWARE_LICENSE_AGREEMENT.txt",
+      "normalize_lf": true,
+      "sha256": "951be39eebbc3585b165be1cac416b40baa7dbd717a244bf07c25c1bf63cbac7"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/TaliseRxArmFirmware.bin",
+      "normalize_lf": false,
+      "sha256": "a07b9095b5622f5f8b7c9486ea0787c51fffd6ffcbac3bb39b93c62dfe796fb3"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/TaliseStream.bin",
+      "normalize_lf": false,
+      "sha256": "998f578532e8752ec68a0f833687251ec42a3286777bb2e3ab67d7e6ceaed7ca"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/TaliseTDDArmFirmware.bin",
+      "normalize_lf": false,
+      "sha256": "a07b9095b5622f5f8b7c9486ea0787c51fffd6ffcbac3bb39b93c62dfe796fb3"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/TaliseTxArmFirmware.bin",
+      "normalize_lf": false,
+      "sha256": "a07b9095b5622f5f8b7c9486ea0787c51fffd6ffcbac3bb39b93c62dfe796fb3"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/TxAttenTable.csv",
+      "normalize_lf": true,
+      "sha256": "5758335878c60d7efbd09159b595aa15e7c88cc2c6010b3e32509e6b64b58700"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/ad9144_fmc_ebz_ad9516.stp",
+      "normalize_lf": true,
+      "sha256": "dc3b3234865b9e2f90ec0dd2b0e71b61a4d2e7029e4437d760a9b58a10c7ced4"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/ad9361_std_gaintable",
+      "normalize_lf": true,
+      "sha256": "da4abf7fe2f4e857f0cd67ad9a456112b5a90b7af648f20e091015fab06a09cf"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/ad9371_std_gaintable",
+      "normalize_lf": true,
+      "sha256": "de4f866103f652955d3decd37a23d6a88811c9304dc8d7abd02a706a939bc2c3"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/ad9467_intbypass_ad9517.stp",
+      "normalize_lf": true,
+      "sha256": "cd00adc323e76dedd5f1c2e7397abb37280092b4fa8ef3b1cb35f00aa974a24b"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/ad9517.stp",
+      "normalize_lf": true,
+      "sha256": "7287f1f0626ffa9558709e3450294f5eba56b27cd9954bd314b5d93325a64d84"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/ad9517_fmcomms6.stp",
+      "normalize_lf": true,
+      "sha256": "1db8168d4d09a643296e9b5d47f93bbc77a6a9a4049a41e0307e2999c8cdf82f"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/ad9517_fmcomms6_300M.stp",
+      "normalize_lf": true,
+      "sha256": "28eb2a52a99ebbfae0b877fd22747514984fe22d5faac3d8a8f84f6f9c87e5e9"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/adar1000_std_phasetable",
+      "normalize_lf": true,
+      "sha256": "e28762a1d837d2b9ae3ab00da84e4fbe1bf1534856d2119e02c8ad548afebca3"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/adau1761.bin",
+      "normalize_lf": false,
+      "sha256": "e8a1142f9b171b4d7397a3d5e6cc8eb34735318f6a7af7e0558c8f5113ada878"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/defconfig",
+      "normalize_lf": true,
+      "sha256": "01eb22b2643d2c7b656d763dd1adbfd2f01198028f92a4f4c2aa0aafcebdd12a"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/imageon_edid.bin",
+      "normalize_lf": false,
+      "sha256": "191ee621dafb021d9c0c7cc65959daa8cd30913ff3ca37bf0c723314be7ed9d0"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/files/pzsdr-fmc-ad9517.stp",
+      "normalize_lf": true,
+      "sha256": "8d9da7f214cc9d8e820253a3927413051502f1ad324f488c41e214337b35310a"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/linux-xlnx/defconfig",
+      "normalize_lf": true,
+      "sha256": "01eb22b2643d2c7b656d763dd1adbfd2f01198028f92a4f4c2aa0aafcebdd12a"
+    },
+    {
+      "path": "project-spec/meta-user/recipes-kernel/linux/linux-xlnx_%.bbappend",
+      "normalize_lf": true,
+      "sha256": "d8665a44007dbbbd46be49709ee3af781ce21f393bcb952aeb139f9386b72316"
+    }
+  ],
+  "intentional_migrations": [
+    "Kernel absolute source path replaced by a preparation placeholder.",
+    "Library source URLs pinned to exact upstream commits; generated workspace uses its own local Git clones.",
+    "Application recipe compiles the current repository application instead of installing the old executable."
+  ],
+  "kernel_configuration_selection": "Both original defconfigs retained. The final full kernel config is a reference, not a new replacement.",
+  "validation_required": [
+    "PetaLinux 2019.2 project configuration and image build on Ubuntu 18.04",
+    "Matching XSA selection for the FPGA image to boot",
+    "SD boot and IIO/UIO, Ethernet, USB and application runtime checks"
+  ]
+}

@@ -1,0 +1,72 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          rndis
+# Required-Start:    $local_fs
+# Default-Start:     2 3 5
+# Default-Stop:      0 6
+### END INIT INFO
+
+GADGET=/sys/kernel/config/usb_gadget/g1
+UDC=ci_hdrc.0
+
+case "$1" in
+  start)
+
+    mount -t configfs none /sys/kernel/config 2>/dev/null || true
+
+    if [ ! -d "$GADGET" ]; then
+
+      mkdir -p "$GADGET"
+
+      # Vendor / Product ID
+      echo 0x1d6b > "$GADGET/idVendor"
+      echo 0x0104 > "$GADGET/idProduct"
+
+      # USB Version
+      echo 0x0200 > "$GADGET/bcdUSB"
+      echo 0x0100 > "$GADGET/bcdDevice"
+
+      # Strings
+      mkdir -p "$GADGET/strings/0x409"
+
+      echo "AK Electronics" > "$GADGET/strings/0x409/manufacturer"
+      echo "AKSDR"          > "$GADGET/strings/0x409/product"
+      echo "00000001"       > "$GADGET/strings/0x409/serialnumber"
+
+      # RNDIS Function
+      mkdir -p "$GADGET/functions/rndis.usb0"
+
+      echo "02:11:22:33:44:55" > "$GADGET/functions/rndis.usb0/dev_addr"
+      echo "02:AA:BB:CC:DD:EE" > "$GADGET/functions/rndis.usb0/host_addr"
+
+      # Configuration
+      mkdir -p "$GADGET/configs/c.1"
+      mkdir -p "$GADGET/configs/c.1/strings/0x409"
+
+      echo "RNDIS Network" > "$GADGET/configs/c.1/strings/0x409/configuration"
+
+      ln -s "$GADGET/functions/rndis.usb0" \
+            "$GADGET/configs/c.1/" 2>/dev/null || true
+
+      # Enable Gadget
+      echo "$UDC" > "$GADGET/UDC"
+
+    fi
+
+    sleep 1
+
+    ip addr flush dev usb0
+
+    # Enable interface
+    ip link set usb0 up
+
+    # Set jumbo frame MTU
+    ip link set usb0 mtu 9000
+
+    # Assign IP address
+    ip addr add 192.168.2.10/24 dev usb0
+
+    ;;
+esac
+
+exit 0
