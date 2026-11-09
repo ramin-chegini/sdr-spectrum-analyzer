@@ -1,23 +1,8 @@
-# Build
-bin/*
-!bin/deploy.sh
+# Local build products and editor state; each component has its own exclusions.
 build/
-Debug/
-Release/
-
-# Eclipse / Vitis
-.metadata/
-.settings/
-.analytics
-
-# Object files
-*.o
-*.d
-*.a
-*.so
-
-# Executables
-*.elf
-
-# Backup
-*~
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,21 @@
+# Vivado build products. Keep *.srcs: this tree still holds design inputs.
+.Xil/
+*.cache/
+*.runs/
+*.hw/
+*.ip_user_files/
+*.sim/
+*.tmp/
+build/
+__pycache__/
+*.pyc
+*.jou
+*.log
+*.str
+*.dcp
+*.bit
+*.ltx
+*.pb
+*.wdb
+*.wcfg
+adi_ip_status.rpt

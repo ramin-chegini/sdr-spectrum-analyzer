@@ -1,0 +1,34 @@
+# Build
+bin/*
+!bin/deploy.sh
+build/
+Debug/
+Release/
+
+# Eclipse / Vitis
+.metadata/
+.settings/
+.analytics
+
+# Object files
+*.o
+*.d
+*.a
+*.so
+!third_party/libiio/lib/libiio.so
+
+# Executables
+*.elf
+
+# Backup
+*~
+
+# Local IDE state and duplicate dependency archives
+IDE.log
+RemoteSystemsTempFiles/
+libiio.zip
+
+# Captured data
+*.wave
+*.wav
+*.iq

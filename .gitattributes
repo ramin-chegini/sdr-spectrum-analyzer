@@ -1,0 +1,12 @@
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.docx binary
+*.zip binary
+*.so binary
+*.so.* binary
+*.bit binary
+*.dcp binary
+*.xsa binary
+sdr_app/docs/sdr-app text eol=lf
