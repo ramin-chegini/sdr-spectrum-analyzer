@@ -1,0 +1,33 @@
+{
+  "petalinux_version": "2019.2",
+  "kernel_version": "4.19.0",
+  "owner_confirmation": "Only PetaLinux configuration, device tree and recipes were modified; no manual kernel source patches.",
+  "dependencies": [
+    {
+      "name": "linux",
+      "url": "https://github.com/analogdevicesinc/linux.git",
+      "branch": "2019_R2",
+      "commit": "89a181de04e3bf49c4c06df417b71bc8dbb04ab9",
+      "local_source_patches": []
+    },
+    {
+      "name": "libiio",
+      "url": "https://github.com/analogdevicesinc/libiio.git",
+      "branch": "2019_R2",
+      "commit": "fb64aca8adcaa607b482091b23b8edf10e5c1ad8",
+      "local_source_patches": []
+    },
+    {
+      "name": "libad9361-iio",
+      "url": "https://github.com/analogdevicesinc/libad9361-iio.git",
+      "branch": "2019_R2",
+      "commit": "be7eb026436f6b68eb718a01cdd249acd85b05c5",
+      "local_source_patches": []
+    }
+  ],
+  "baseline_hardware": {
+    "path": "hardware/system.xsa",
+    "sha256": "a09ca4cb62682b40f11b77d9168a737e4888af58836bf500925ac1bb14012c2a",
+    "note": "Snapshot from the original PetaLinux project; correspondence to the newly rebuilt FPGA has not been confirmed. Use --xsa for a newly exported handoff."
+  }
+}

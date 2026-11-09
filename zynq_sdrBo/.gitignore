@@ -1,0 +1,19 @@
+# Retain the PetaLinux version marker, not usage / WebTalk state.
+/.petalinux/*
+!/.petalinux/metadata
+/build/
+/images/
+/components/
+/sources/
+/.Xil/
+/pre-built/
+/Bitstream/
+/project-spec/meta-plnx-generated/
+/project-spec/hw-description/
+*.old
+*.o
+*.jou
+*.log
+*.str
+__pycache__/
+*.pyc

@@ -1,0 +1,430 @@
+/include/ "system-conf.dtsi"
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/ {
+	
+	model = "PUZHI PZSDR P201PRO (Z7020/AD9361)";
+	interrupt-parent = <&intc>;
+
+
+	aliases {
+		usb0 = "/amba/usb@e0002000";
+	};
+
+	usb_phy0: phy0 {
+
+		compatible = "ulpi-phy";
+        #phy-cells = <0x0>;
+		reg = <0xe0002000 0x1000>;
+		view-port = <0x0170>;
+		drv-vbus;
+	};
+
+	chosen {
+	   bootargs = "earlycon clk_ignore_unused uio_pdrv_genirq.of_id=generic-uio rootwait quiet loglevel=0";
+	   stdout-path = "serial0:115200n8";
+	};
+
+	reserved-memory {
+    	#address-cells = <1>;
+    	#size-cells = <1>;
+    	ranges;
+
+    	dma_reserved: dma-buffer@3f000000 {
+        	reg = <0x3f000000 0x01000000>;
+        	no-map;
+    };
+   	reserved-driver@0 {
+      	compatible = "xlnx,reserved-memory";
+      	memory-region = <&dma_reserved>;
+   	};		
+};
+
+	clocks {
+		ad9361_clkin: clock@0 {
+			#clock-cells = <0>;
+			compatible = "adjustable-clock";
+			clock-frequency = <40000000>;
+			clock-accuracy = <200000>; /* 200 ppm (ppb) */
+			clock-output-names = "ad9364_ext_refclk";
+		};
+	};
+
+	l_clk: l_clk {
+
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <61440000>;
+		clock-output-names = "l_clk";
+	};	
+
+	leds {
+        compatible = "gpio-leds";
+
+        led0 {
+            label = "led0:blue";
+            gpios = <&gpio0 0x47 0x0>;   /* GPIO_ACTIVE_HIGH */
+            linux,default-trigger = "heartbeat";
+        };
+
+        led1 {
+            label = "led1:blue";
+            gpios = <&gpio0 0x48 0x0>;
+            linux,default-trigger = "heartbeat";
+        };
+    };
+
+};
+		
+	&spi0 {
+	    status = "okay";
+
+		/delete-property/ is-decoded-cs;
+	    /delete-property/ num-cs ;
+
+	    ad9361_phy: ad9361-phy@0 {
+
+			#address-cells = <1>;
+			#size-cells = <0>;
+			#clock-cells = <1>;
+			compatible = "adi,ad9361";
+
+			/* SPI Setup */
+			reg = <0>;
+			spi-cpha;                                                           
+			spi-max-frequency = <10000000>;                                            
+
+			/* Clocks */
+			clocks = <&ad9361_clkin 0>;
+			clock-names = "ad9364_ext_refclk";
+			clock-output-names = "rx_sampl_clk", "tx_sampl_clk";
+
+			/* Digital Interface Control */
+
+			 /* adi,digital-interface-tune-skip-mode:
+			  * 0 = TUNE RX&TX
+			  * 1 = SKIP TX
+			  * 2 = SKIP ALL
+			  */
+		    //adi,digital-interface-tune-skip-mode = <0>;
+
+			adi,pp-tx-swap-enable;                                                         
+			adi,pp-rx-swap-enable;                                                          
+			adi,rx-frame-pulse-mode-enable;                                                   
+
+			adi,xo-disable-use-ext-refclk-enable;                                              
+ 
+		    /* Enable CMOS Mode */
+			adi,digital-interface-tune-fir-disable;                                
+			adi,digital-interface-tune-skip-mode = <0x0>; /* TUNE RX & TX */        
+			adi,rx-data-delay = <0x4>;                                                 
+			adi,rx-data-clock-delay = <0x4>;                                        
+			adi,tx-fb-clock-delay = <0x4>;                                                 
+			adi,swap-ports-enable;                                                       
+
+			/* Mode Setup */
+
+			//adi,split-gain-table-mode-enable;
+
+			/* ENSM Mode */
+
+			adi,frequency-division-duplex-mode-enable;                                          
+			adi,full-port-enable;                                                                    
+
+
+			/* adi,rx-rf-port-input-select:
+			 * 0 = (RX1A_N &  RX1A_P) and (RX2A_N & RX2A_P) enabled; balanced
+			 * 1 = (RX1B_N &  RX1B_P) and (RX2B_N & RX2B_P) enabled; balanced
+			 * 2 = (RX1C_N &  RX1C_P) and (RX2C_N & RX2C_P) enabled; balanced
+			 *
+			 * 3 = RX1A_N and RX2A_N enabled; unbalanced
+			 * 4 = RX1A_P and RX2A_P enabled; unbalanced
+			 * 5 = RX1B_N and RX2B_N enabled; unbalanced
+			 * 6 = RX1B_P and RX2B_P enabled; unbalanced
+			 * 7 = RX1C_N and RX2C_N enabled; unbalanced
+			 * 8 = RX1C_P and RX2C_P enabled; unbalanced
+			 */
+
+			adi,rx-rf-port-input-select = <0x0>; /* (RX1A_N &  RX1A_P) and (RX2A_N & RX2A_P) enabled; balanced */                      
+			adi,rx-rf-port-input-select-lock-enable;                                                                                       
+
+			/* adi,tx-rf-port-input-select:
+			 * 0	TX1A, TX2A
+			 * 1	TX1B, TX2B
+			 */
+			adi,tx-rf-port-input-select = <0x0>; /* TX1A, TX2A */                        
+			adi,tx-rf-port-input-select-lock-enable;                                       
+
+            //adi,update-tx-gain-in-alert-enable;
+			adi,tx-attenuation-mdB = <10000>;                                         
+			adi,tx-lo-powerdown-managed-enable;                                        
+
+		    adi,rf-rx-bandwidth-hz = <18000000>;
+		    adi,rf-tx-bandwidth-hz = <18000000>;    
+
+		    adi,rx-synthesizer-frequency-hz = /bits/ 64 <2400000000>;
+		    adi,tx-synthesizer-frequency-hz = /bits/ 64 <2450000000>; 
+
+            /*				                   BBPLL     ADC        R2CLK    R1CLK    CLKRF   RSAMPL  */
+			adi,rx-path-clock-frequencies = <983040000 245760000 122880000 61440000 30720000 30720000>;                   
+            /*				                   BBPLL     DAC        T2CLK    T1CLK    CLKTF    TSAMPL  */
+			adi,tx-path-clock-frequencies = <983040000 122880000 122880000 61440000 30720000 30720000>;                         
+
+			/* Gain Control */
+
+			/* adi,gc-rx[1|2]-mode:
+			 * 0 = RF_GAIN_MGC
+			 * 1 = RF_GAIN_FASTATTACK_AGC
+			 * 2 = RF_GAIN_SLOWATTACK_AGC
+			 * 3 = RF_GAIN_HYBRID_AGC
+			 */
+			adi,gc-rx1-mode = <0x2>;                                             
+			adi,gc-rx2-mode = <0x2>;                                               
+
+
+			adi,gc-adc-ovr-sample-size = <0x4>;                                     
+			adi,gc-adc-small-overload-thresh = <0x2f>;                              
+			adi,gc-adc-large-overload-thresh = <0x3a>;                                
+			adi,gc-lmt-overload-high-thresh = <0x320>;                               
+			adi,gc-lmt-overload-low-thresh = <0x2c0>;                                 
+			adi,gc-dec-pow-measurement-duration = <0x2000>;                        
+			adi,gc-low-power-thresh = <0x18>;                                        
+
+
+			//adi,gc-dig-gain-enable;
+			//adi,gc-max-dig-gain = <15>;
+
+			/* Manual Gain Control Setup */
+
+			//adi,mgc-rx1-ctrl-inp-enable; /* uncomment to use ctrl inputs */
+			//adi,mgc-rx2-ctrl-inp-enable; /* uncomment to use ctrl inputs */
+
+			adi,mgc-inc-gain-step = <0x2>;                                           
+			adi,mgc-dec-gain-step = <0x2>;                                          
+
+			/* adi,mgc-split-table-ctrl-inp-gain-mode:                                   
+			 * (relevant if adi,split-gain-table-mode-enable is set)
+			 * 0 = AGC determine this
+			 * 1 = only in LPF
+			 * 2 = only in LMT
+			 */
+
+			adi,mgc-split-table-ctrl-inp-gain-mode = <0x0>;                           
+
+            /* Automatic Gain Control Setup */
+
+			adi,agc-attack-delay-extra-margin-us = <0x1>; /* us */    
+			adi,agc-outer-thresh-high = <0x5>; /* -dBFS */             
+			adi,agc-outer-thresh-high-dec-steps = <0x2>; /* 0..15 */   
+			adi,agc-inner-thresh-high = <0xa>; /* -dBFS */             
+			adi,agc-inner-thresh-high-dec-steps = <0x1>; /* 0..7 */   
+			adi,agc-inner-thresh-low = <0xc>; /* -dBFS */            
+			adi,agc-inner-thresh-low-inc-steps = <0x1>; /* 0..7 */     
+			adi,agc-outer-thresh-low = <0x12>;  /* -dBFS */            
+			adi,agc-outer-thresh-low-inc-steps = <0x2>; /* 0..15 */    
+
+
+
+			adi,agc-adc-small-overload-exceed-counter = <0xa>; /* 0..15 */        
+			adi,agc-adc-large-overload-exceed-counter = <0xa>; /* 0..15 */              
+			adi,agc-adc-large-overload-inc-steps = <0x2>; /* 0..15 */                     
+			adi,agc-lmt-overload-large-exceed-counter = <0xa>; /* 0..15 */              
+			adi,agc-lmt-overload-small-exceed-counter = <0xa>; /* 0..15 */              
+			adi,agc-lmt-overload-large-inc-steps = <0x2>;  /* 0..7 */                  
+			adi,agc-gain-update-interval-us = <0x3e8>;  /* 1ms */                     
+            /* Fast AGC */
+			adi,fagc-dec-pow-measurement-duration = <0x40>; /* 64 Samples */         
+            //adi,fagc-allow-agc-gain-increase-enable;
+			adi,fagc-lp-thresh-increment-steps = <0x1>;                               
+			adi,fagc-lp-thresh-increment-time = <0x5>;                                
+
+			adi,fagc-energy-lost-stronger-sig-gain-lock-exit-cnt = <0x8>;          
+			adi,fagc-final-overrange-count = <0x3>;                                
+            //adi,fagc-gain-increase-after-gain-lock-enable;
+			adi,fagc-gain-index-type-after-exit-rx-mode = <0x0>;                     
+			adi,fagc-lmt-final-settling-steps = <0x1>;                                
+			adi,fagc-lock-level = <0xa>;                                               
+			adi,fagc-lock-level-gain-increase-upper-limit = <0x5>;                   
+			adi,fagc-lock-level-lmt-gain-increase-enable;                          
+
+			adi,fagc-lpf-final-settling-steps = <0x1>;                              
+			adi,fagc-optimized-gain-offset = <0x5>;                                
+			adi,fagc-power-measurement-duration-in-state5 = <0x40>;                 
+			adi,fagc-rst-gla-engergy-lost-goto-optim-gain-enable;                  
+			adi,fagc-rst-gla-engergy-lost-sig-thresh-below-ll = <0xa>;              
+			adi,fagc-rst-gla-engergy-lost-sig-thresh-exceeded-enable;                
+			adi,fagc-rst-gla-if-en-agc-pulled-high-mode = <0x0>;                      
+			adi,fagc-rst-gla-large-adc-overload-enable;                             
+			adi,fagc-rst-gla-large-lmt-overload-enable;                               
+			adi,fagc-rst-gla-stronger-sig-thresh-above-ll = <0xa>;                     
+			adi,fagc-rst-gla-stronger-sig-thresh-exceeded-enable;                       
+			adi,fagc-state-wait-time-ns = <0x104>;                                       
+			adi,fagc-use-last-lock-level-for-set-gain-enable;                          
+			/* RSSI */
+
+			/* adi,rssi-restart-mode:
+			 * 0 = AGC_IN_FAST_ATTACK_MODE_LOCKS_THE_GAIN,
+			 * 1 = EN_AGC_PIN_IS_PULLED_HIGH,
+			 * 2 = ENTERS_RX_MODE,
+			 * 3 = GAIN_CHANGE_OCCURS,
+			 * 4 = SPI_WRITE_TO_REGISTER,
+			 * 5 = GAIN_CHANGE_OCCURS_OR_EN_AGC_PIN_PULLED_HIGH,
+			 */
+			adi,rssi-restart-mode = <0x3>;                             
+            //adi,rssi-unit-is-rx-samples-enable;
+			adi,rssi-delay = <0x1>; /* 1us */                           
+			adi,rssi-wait = <0x1>; /* 1us */                              
+			adi,rssi-duration = <0x3e8>;  /* 1ms */                      
+
+            /* Control Outputs */
+			adi,ctrl-outs-index = <0x0>;                      
+			adi,ctrl-outs-enable-mask = <0xff>;              
+ 
+            /* AuxADC Temp Sense Control */
+			adi,temp-sense-measurement-interval-ms = <0x3e8>;                    
+			adi,temp-sense-offset-signed = <0xce>;                              
+			adi,temp-sense-periodic-measurement-enable;                            
+
+            /* AuxDAC Control */
+			adi,aux-dac-manual-mode-enable;                
+			adi,aux-dac1-default-value-mV = <0x0>;     
+
+			//adi,aux-dac1-active-in-rx-enable;
+			//adi,aux-dac1-active-in-tx-enable;
+			//adi,aux-dac1-active-in-alert-enable;
+			adi,aux-dac1-rx-delay-us = <0x0>;       
+			adi,aux-dac1-tx-delay-us = <0x0>;     
+
+
+			adi,aux-dac2-default-value-mV = <0x0>;    
+			//adi,aux-dac2-active-in-rx-enable;
+			//adi,aux-dac2-active-in-tx-enable;
+			//adi,aux-dac2-active-in-alert-enable;
+			adi,aux-dac2-rx-delay-us = <0x0>;         
+			adi,aux-dac2-tx-delay-us = <0x0>;          
+
+			/* Control GPIOs */
+			en_agc-gpios = <&gpio0 0x42 0x0>;                                           
+			reset-gpios = <&gpio0 0x43 0x0>;   
+			
+			adi,2rx-2tx-mode-enable;                                    	
+	    };
+	};
+
+	&amba_pl {
+
+	    dma-ranges;
+		/delete-node/ axi_ad9361@79020000;
+		/delete-node/ axi_dmac@7c400000;
+		/delete-node/ misc_clk_0;
+		/delete-node/ dma@40400000;
+		/delete-node/ dma@40410000;		
+
+		axi_dma_0: dma@40400000 {
+			compatible = "generic-uio";
+
+			reg = <0x40400000 0x10000>;
+
+			interrupt-parent = <&intc>;
+		        //IRQ_F2P[0] => GIC=61
+			//DTS_IRQ = 61 - 32 = 29 
+			//IRQ_F2P[0] -> GIC 61 -> DT interrupt 29 */
+			interrupts = <0 29 4>;
+			linux,uio-name = "axi-dma-psd";
+			//linux,uio-name = "axi-dma-s2mm";
+		};
+		axi_dma_audio: dma@40410000 {
+			compatible = "generic-uio";
+
+			reg = <0x40410000 0x10000>;
+		        //IRQ_F2P[0] => GIC=62
+			//DTS_IRQ = 62 - 32 = 30 
+ 			//IRQ_F2P[1] -> GIC 62 -> DT interrupt 30 
+			interrupt-parent = <&intc>;
+			interrupts = <0 30 4>;
+ 			linux,uio-name = "axi-dma-audio";
+
+			//linux,uio-name = "axi-dma-s2mm";
+		};		
+
+	    rx_dma: dma@7c400000 {
+
+			compatible = "adi,axi-dmac-1.00.a";	
+			reg = <0x7c400000 0x10000>;
+
+            		/delete-property/ clock-names ;
+			clocks = <&clkc 16>;
+
+            		/delete-property/ interrupt-names ;
+            		/delete-property/ interrupt-parent ;
+			//IRQ_F2P[0] => GIC=89
+			//DTS_IRQ = 89 - 32 = 57 ==> 0x39 				
+			interrupts = <0x0 0x39 0x4>;
+
+			#dma-cells = <1>;
+
+			adi,channels {
+
+				#size-cells = <0>;
+				#address-cells = <1>;
+
+				dma-channel@0 {
+					reg = <0>;
+					adi,source-bus-width = <32>;
+					adi,source-bus-type = <2>;
+					adi,destination-bus-width = <32>;
+					adi,destination-bus-type = <0>;
+				};
+			};
+		};
+
+        cf_ad9361_adc_core_0: cf-ad9361-lpc@79020000 {			
+
+			compatible = "adi,axi-ad9361-6.00.a";
+			reg = <0x79020000 0x10000>;
+
+            		/delete-property/ clock-names ;	
+            		/delete-property/ clocks;				
+					
+
+			dmas = <&rx_dma 0>;
+			dma-names = "rx";
+
+			spibus-connected = <&ad9361_phy>;  
+			adi,axi-decimation-core-available;
+		};
+	
+	};
+
+	&gem0 {
+
+		local-mac-address = [00 0a 35 00 01 22];
+		phy-handle = <&extphy0>;
+		phy-mode = "rgmii-id";
+		status = "okay";
+		xlnx,has-mdio = <0x1>;
+
+		ps7_ethernet_0_mdio: mdio {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			extphy0: phy@1 {
+				device_type = "ethernet-phy";
+				reg = <1>;
+			};
+			gmii_to_rgmii_0: gmii_to_rgmii_0@8 {
+				phy-handle = <&extphy0>;
+				reg = <8>;
+			};
+		};
+	}; 
+
+    &usb0 {
+
+		status = "okay";
+		dr_mode = "otg";
+		/delete-property/ usb-reset;
+		xlnx,phy-reset-gpio = <&gpio0 0x30 0x0>;
+    };
+
+

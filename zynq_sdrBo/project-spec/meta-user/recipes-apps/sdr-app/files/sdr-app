@@ -1,0 +1,42 @@
+#!/bin/sh
+
+APP="/usr/bin/sdr_app"
+
+case "$1" in
+    start)
+        echo "Starting sdr_app..."
+        if pidof sdr_app >/dev/null 2>&1; then
+            echo "sdr_app is already running."
+            exit 0
+        fi
+
+        "$APP" &
+        ;;
+
+    stop)
+        echo "Stopping sdr_app..."
+        killall sdr_app 2>/dev/null
+        ;;
+
+    restart)
+        "$0" stop
+        sleep 1
+        "$0" start
+        ;;
+
+    status)
+        if pidof sdr_app >/dev/null 2>&1; then
+            echo "sdr_app is running."
+            pidof sdr_app
+        else
+            echo "sdr_app is not running."
+        fi
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+        ;;
+esac
+
+exit 0

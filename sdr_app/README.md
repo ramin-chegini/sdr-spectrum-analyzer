@@ -49,8 +49,9 @@ bash bin/deploy.sh
 
 The target must already provide the `sdr-app` service command and compatible
 runtime libraries. `docs/sdr-app` contains the service helper used by the
-project; its log is `/var/log/sdr_app.log`. Installing/configuring the Linux
-image and service is part of the separate PetaLinux environment.
+project; its log is `/var/log/sdr_app.log`. The
+[PetaLinux workspace guide](../zynq_sdrBo/README.md) describes compiling this
+application and installing its original startup helper in the generated image.
 
 ## Run on the board
 
@@ -109,7 +110,8 @@ does not perform a general search across all possible input frequencies.
 
 These addresses and the UIO numbering must match the booted device tree and
 hardware handoff. Select exactly one of `SDR_NET_ETH0` or `SDR_NET_USB0` before
-building. The actual PetaLinux configuration will be imported separately.
+building. The PetaLinux inputs are in [zynq_sdrBo](../zynq_sdrBo/README.md); its new
+image build and board boot remain to be validated.
 
 ## Layer 2 protocol
 

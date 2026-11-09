@@ -9,4 +9,5 @@
 *.bit binary
 *.dcp binary
 *.xsa binary
+*.bin binary
 sdr_app/docs/sdr-app text eol=lf
